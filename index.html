@@ -127,6 +127,10 @@
         <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
         過往夢境 (<span id="savedCount">0</span>)
       </button>
+      <button onclick="copyCurrentForAnalysis()" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition flex items-center gap-1.5 cursor-pointer" title="複製呢個夢嘅文字（連同分析指示），可以直接貼俾 AI">
+        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        <span class="hidden sm:inline">複製分析用</span>
+      </button>
       <button onclick="window.print()" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition flex items-center gap-1.5 cursor-pointer" title="列印或匯出 PDF">
         <svg class="w-4 h-4 text-inkLight" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
         <span class="hidden sm:inline">匯出/列印</span>
@@ -507,7 +511,8 @@
     <div id="historyList" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
 
     <!-- 備份 -->
-    <div class="p-3 border-t border-borderLine bg-paperDark/60 flex items-center gap-2">
+    <div class="p-3 border-t border-borderLine bg-paperDark/60 flex flex-wrap items-center gap-2">
+      <button onclick="copyRecentForAnalysis()" class="w-full px-3 py-2 text-xs font-medium rounded-lg border border-accent bg-accentSoft hover:bg-white text-accent transition cursor-pointer" title="複製最近 10 篇夢境（連同分析指示），用嚟搵規律">複製最近 10 篇（搵規律用）</button>
       <button onclick="exportJSON()" class="flex-1 px-3 py-2 text-xs font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition cursor-pointer">匯出備份 (JSON)</button>
       <button onclick="document.getElementById('importFile').click()" class="flex-1 px-3 py-2 text-xs font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition cursor-pointer">匯入備份</button>
       <input id="importFile" type="file" accept="application/json,.json" class="hidden" />
@@ -1586,6 +1591,130 @@
         showToast('匯入失敗：' + err.message, true);
       }
     });
+
+    // ==================== 複製分析用文字 ====================
+    const labelOf = (list, id, key = 'zh') => (list.find(x => x.id === id) || {})[key] || id;
+
+    function sleepHoursText(start, finish) {
+      if (!start || !finish) return '';
+      const [sh, sm] = start.split(':').map(Number);
+      const [fh, fm] = finish.split(':').map(Number);
+      let a = sh * 60 + sm, b = fh * 60 + fm;
+      if (b < a) b += 24 * 60;
+      return `${((b - a) / 60).toFixed(1)} 小時（${start} 至 ${finish}）`;
+    }
+
+    // 將一篇記錄整理成易讀嘅純文字（只包含有填嘅欄位）
+    function formatEntryText(r) {
+      const lines = [];
+      const add = (label, value) => {
+        if (value === undefined || value === null) return;
+        const v = String(value).trim();
+        if (v) lines.push(`${label}：${v}`);
+      };
+
+      lines.push(`【夢境 #${r.no || ''}｜${r.date || '未填日期'}】`);
+      add('一句描述', r.summary);
+      add('夢境分數', r.ranking !== undefined && r.ranking !== null ? `${r.ranking}/100` : '');
+      add('地點', r.where);
+      add('詳細描述', r.dreamNarrative);
+      add('隨筆', r.quickFeelingNote);
+
+      const types = (r.dreamTypes || []).map(id => labelOf(DREAM_TYPES, id));
+      if (r.dreamTypeOtherText) types.push(r.dreamTypeOtherText);
+      add('夢境類型', types.join('、'));
+      add('特別標記', FLAG_OPTIONS.filter(f => r[f.key] === true).map(f => f.zh).join('、'));
+      add('夢中情緒', (r.dreamEmotions || []).map(id => labelOf(DREAM_EMOTIONS, id)).join('、'));
+
+      const chars = (r.characters || []).map(id => labelOf(CHARACTER_OPTIONS, id));
+      if (r.charactersOtherText) chars.push(r.charactersOtherText);
+      add('夢中人物', chars.join('、'));
+      add('夢境視角', r.vision ? labelOf(VISION_OPTIONS, r.vision) : '');
+      add('標籤', (r.tags || []).join('、'));
+
+      add('睡眠質素', r.wellness !== undefined && r.wellness !== null ? `${r.wellness}/5` : '');
+      add('睡眠中斷', r.interruptions !== undefined && r.interruptions !== null ? `${r.interruptions}/5` : '');
+      add('睡眠時間', sleepHoursText(r.sleepStart, r.sleepFinish));
+      add('睡眠伴侶', r.sleepWith ? labelOf(SLEEP_WITH_OPTIONS, r.sleepWith, 'labelZh') : '');
+      add('睡前活動', r.preSleepActivity);
+
+      const feel = [];
+      if (r.feeling) feel.push(labelOf(FEELING_OPTIONS, r.feeling));
+      if (r.feelingsOtherText) feel.push(r.feelingsOtherText);
+      add('醒來後嘅感覺', feel.join('、'));
+
+      add('前一日壓力', r.stress ? labelOf(STRESS_OPTIONS, r.stress) : '');
+      add('壓力來源', (r.stressSources || []).map(id => labelOf(STRESS_SOURCES, id)).join('、'));
+      add('前一日咖啡因', r.caffeine === 'yes' ? '有' : r.caffeine === 'no' ? '無' : '');
+      add('前一日酒精', r.alcohol === 'yes' ? '有' : r.alcohol === 'no' ? '無' : '');
+      add('我自己嘅反思', r.dreamMessage);
+      return lines.join('\n');
+    }
+
+    const PROMPT_SINGLE =
+`我想同你分享我嘅夢境記錄。請你：
+1. 整理夢嘅情節同主要情緒
+2. 提出 3 至 5 個幫我反思嘅問題，幫我連繫返現實生活
+3. 如果有可能，列出幾個可能嘅解讀角度。請清楚講明呢啲只係可能性，唔好斷言夢嘅「真正含意」。
+
+---
+`;
+
+    const PROMPT_MULTI = (n) =>
+`以下係我最近嘅 ${n} 篇夢境記錄（由舊到新）。請你：
+1. 搵出反覆出現嘅人物、場景、標籤同情緒
+2. 睇吓夢境同壓力、咖啡因、酒精、睡眠質素之間有冇明顯關聯（資料有限，請謹慎，只講你觀察到嘅規律）
+3. 提出幾個值得我留意或反思嘅問題
+請唔好斷言夢嘅「真正含意」。
+
+---
+`;
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (_) {
+        // 後備做法（例如喺非 https 環境開檔案）
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand('copy');
+          ta.remove();
+          return ok;
+        } catch (_) {
+          return false;
+        }
+      }
+    }
+
+    // 複製目前頁面嘅夢境（包括未儲存嘅內容）
+    async function copyCurrentForAnalysis() {
+      commitPendingTag();
+      const rec = collectRecord(false);
+      if (!rec.summary && !rec.dreamNarrative && !rec.quickFeelingNote.trim()) {
+        showToast('未有夢境文字可以複製，請先寫低一句描述或夢境內容', true);
+        return;
+      }
+      const ok = await copyText(PROMPT_SINGLE + formatEntryText(rec));
+      if (!ok) { showToast('複製失敗，請檢查瀏覽器嘅剪貼簿權限', true); return; }
+      showToast(inked ? '已複製夢境文字（草圖唔包括在內），可以貼俾 AI' : '已複製夢境文字，可以貼俾 AI');
+    }
+
+    // 複製最近 N 篇已儲存嘅夢境，用嚟搵規律
+    async function copyRecentForAnalysis(n = 10) {
+      if (entriesCache.length === 0) { showToast('暫時冇已儲存嘅記錄', true); return; }
+      // entriesCache 係新到舊，取最近 n 篇後轉為由舊到新
+      const recent = entriesCache.slice(0, n).reverse();
+      const text = PROMPT_MULTI(recent.length) + recent.map(formatEntryText).join('\n\n');
+      const ok = await copyText(text);
+      if (!ok) { showToast('複製失敗，請檢查瀏覽器嘅剪貼簿權限', true); return; }
+      showToast(`已複製最近 ${recent.length} 篇夢境，可以貼俾 AI`);
+    }
 
     // ==================== 初始化 ====================
     async function migrateFromLocalStorage() {
