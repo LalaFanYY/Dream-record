@@ -1,1 +1,1376 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dream Unraveled 夢境記錄簿</title>
+  <!-- Google Fonts: Classic Serif + Clean Traditional Chinese Sans-Serif -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS (v3 CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper: '#FAF8F5',
+            paperDark: '#F2EFE9',
+            ink: '#2C2A29',
+            inkLight: '#686461',
+            borderLine: '#D6D1C7',
+            accent: '#4F5D75',
+            accentSoft: '#E6E9EF',
+          },
+          fontFamily: {
+            serifEn: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            serifZh: ['"Noto Serif TC"', 'serif'],
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #EAE5DC;
+      color: #2C2A29;
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    /* 實體紙張點陣背景 (Dot-grid pattern) */
+    .dot-grid {
+      background-color: #FAF8F5;
+      background-image: radial-gradient(#C5BFB5 1.15px, transparent 1.15px);
+      background-size: 16px 16px;
+    }
+
+    /* 實體橫線筆記背景 (Ruled lines)
+       line-height 用 !important 確保唔會被 text-sm 蓋過；
+       background-attachment: local 令橫線跟住內容捲動 */
+    .ruled-lines {
+      background-color: transparent;
+      background-image: linear-gradient(to bottom, transparent 31px, #DCD6CC 32px);
+      background-size: 100% 32px;
+      background-attachment: local;
+      line-height: 32px !important;
+      font-size: 14px;
+      padding: 0 4px !important;
+      min-height: 192px;
+    }
+
+    /* 雙頁中間書脊陰影效果 */
+    @media (min-width: 1024px) {
+      .book-spine-left {
+        box-shadow: inset -12px 0 20px -15px rgba(44, 42, 41, 0.22);
+      }
+      .book-spine-right {
+        box-shadow: inset 12px 0 20px -15px rgba(44, 42, 41, 0.22);
+      }
+    }
+
+    /* 自訂捲軸 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #F2EFE9; }
+    ::-webkit-scrollbar-thumb { background: #C5BFB5; border-radius: 3px; }
+
+    /* 畫布：停用瀏覽器預設觸控手勢，令手指／手寫筆畫畫更順 */
+    #dreamCanvas { touch-action: none; }
+
+    /* 列印專用樣式 */
+    @media print {
+      body { background: #FFFFFF !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      .journal-container {
+        box-shadow: none !important;
+        border: 1px solid #999 !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen py-4 px-2 sm:px-6 lg:px-8 flex flex-col items-center">
+
+  <!-- 頂部功能操作列 (Top Action Bar) -->
+  <header class="no-print w-full max-w-[1380px] mb-4 bg-paper border border-borderLine rounded-xl px-4 py-3 shadow-sm flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-accent text-white flex items-center justify-center shadow-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="font-serifEn text-xl sm:text-2xl font-bold tracking-wide text-ink leading-none">
+          Dream Unraveled <span class="font-serifZh text-base sm:text-lg font-medium text-accent ml-1">夢境記錄簿</span>
+        </h1>
+        <p class="text-xs text-inkLight mt-0.5">在夢境消逝之前，用文字與畫筆留住潛意識的訊息</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <span id="dirtyBadge" class="hidden text-[11px] px-2 py-1 rounded-md bg-amber-100 text-amber-800 border border-amber-200">未儲存（已自動存草稿）</span>
+      <button onclick="createNewEntry()" class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        新夢境頁
+      </button>
+      <button onclick="saveCurrentEntry()" class="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-accent hover:bg-[#3E4A5E] text-white transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        儲存記錄
+      </button>
+      <button onclick="toggleHistoryDrawer()" class="px-3.5 py-2 text-xs sm:text-sm font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition flex items-center gap-1.5 cursor-pointer">
+        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+        過往夢境 (<span id="savedCount">0</span>)
+      </button>
+      <button onclick="window.print()" class="px-3 py-2 text-xs sm:text-sm font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition flex items-center gap-1.5 cursor-pointer" title="列印或匯出 PDF">
+        <svg class="w-4 h-4 text-inkLight" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        <span class="hidden sm:inline">匯出/列印</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 提示訊息 Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-[60] transform translate-y-20 opacity-0 transition-all duration-300 bg-ink text-paper px-4 py-2.5 rounded-lg shadow-lg text-sm flex items-center gap-2 pointer-events-none">
+    <span id="toastDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toastMsg">已儲存夢境記錄</span>
+  </div>
+
+  <!-- 雙頁展開手帳主體 (Two-Page Spread Journal Container) -->
+  <main class="journal-container w-full max-w-[1380px] bg-paper border border-borderLine rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-2">
+
+    <!-- ==================== 左頁 (LEFT PAGE) ==================== -->
+    <section class="book-spine-left border-b lg:border-b-0 lg:border-r border-borderLine flex flex-col">
+
+      <!-- 左頁頂部：夢境分數 & 睡眠伴侶 -->
+      <div class="grid grid-cols-1 sm:grid-cols-12 border-b border-borderLine">
+        <div class="sm:col-span-5 p-4 border-b sm:border-b-0 sm:border-r border-borderLine flex flex-col justify-between bg-paperDark/40">
+          <div>
+            <div class="text-xs font-medium text-ink tracking-wide">給今天夢境的分數</div>
+            <div class="font-serifEn italic text-sm text-inkLight">Ranking</div>
+          </div>
+          <div class="mt-3 flex items-baseline justify-end gap-1.5">
+            <input id="dreamRanking" type="number" min="0" max="100" value="85"
+              class="w-20 text-right font-serifEn text-3xl font-bold text-accent bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none" />
+            <span class="font-serifEn text-2xl text-inkLight font-semibold">/ 100</span>
+          </div>
+        </div>
+
+        <div class="sm:col-span-7 p-4 flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <span class="font-serifEn italic font-semibold text-base text-ink">Sleep with who? <span class="font-sans not-italic text-xs font-normal text-inkLight ml-1">睡眠伴侶</span></span>
+          </div>
+          <div id="sleepWithContainer" class="mt-3 grid grid-cols-5 gap-1.5 text-center"></div>
+        </div>
+      </div>
+
+      <!-- 左頁中間：Record your dream / feeling -->
+      <div class="p-4 sm:p-5 border-b border-borderLine flex-1 flex flex-col">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div>
+            <h2 class="font-serifEn italic font-bold text-xl text-ink leading-tight">Record your dream / feeling</h2>
+            <p class="text-xs text-inkLight tracking-widest">任何方式記錄（自由繪畫、草圖或隨筆）</p>
+          </div>
+
+          <div class="no-print flex items-center gap-1.5 bg-paperDark p-1 rounded-lg border border-borderLine">
+            <button type="button" id="modeDrawBtn" onclick="setSketchMode('draw')" class="px-2.5 py-1 text-xs rounded-md bg-white text-ink font-medium shadow-sm transition cursor-pointer">繪畫模式</button>
+            <button type="button" id="modeNoteBtn" onclick="setSketchMode('note')" class="px-2.5 py-1 text-xs rounded-md text-inkLight hover:text-ink transition cursor-pointer">文字隨筆</button>
+          </div>
+        </div>
+
+        <!-- 畫筆控制列 -->
+        <div id="drawToolbar" class="no-print flex flex-wrap items-center justify-between gap-2 mb-2 px-2 py-1.5 bg-paperDark/70 rounded-lg border border-borderLine/70 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="text-inkLight">畫筆：</span>
+            <button type="button" data-color="#2C2A29" class="pen-swatch w-5 h-5 rounded-full bg-[#2C2A29] cursor-pointer" title="墨黑"></button>
+            <button type="button" data-color="#4F5D75" class="pen-swatch w-5 h-5 rounded-full bg-[#4F5D75] cursor-pointer" title="靛藍"></button>
+            <button type="button" data-color="#9E4747" class="pen-swatch w-5 h-5 rounded-full bg-[#9E4747] cursor-pointer" title="暗紅"></button>
+            <button type="button" data-color="#4A7C59" class="pen-swatch w-5 h-5 rounded-full bg-[#4A7C59] cursor-pointer" title="森綠"></button>
+            <button type="button" data-color="#D98A2B" class="pen-swatch w-5 h-5 rounded-full bg-[#D98A2B] cursor-pointer" title="暖琥珀"></button>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-inkLight flex items-center gap-1">
+              粗幼
+              <input id="penSize" type="range" min="1" max="10" value="2.5" step="0.5" class="w-16 accent-accent cursor-pointer">
+            </label>
+            <button type="button" id="eraserBtn" onclick="toggleEraser()" class="px-2 py-0.5 rounded border border-borderLine bg-white hover:bg-paperDark text-ink transition cursor-pointer">橡皮擦</button>
+            <button type="button" onclick="clearCanvas(true)" class="px-2 py-0.5 rounded border border-borderLine bg-white hover:bg-red-50 text-red-700 transition cursor-pointer">清除畫布</button>
+          </div>
+        </div>
+
+        <!-- 點陣畫布框 -->
+        <div id="canvasWrap" class="relative w-full h-[300px] sm:h-[340px] dot-grid border border-borderLine rounded-lg overflow-hidden">
+          <span class="pointer-events-none absolute top-2.5 left-2.5 w-3.5 h-3.5 border-t-2 border-l-2 border-inkLight/60 rounded-tl-sm"></span>
+          <span class="pointer-events-none absolute top-2.5 right-2.5 w-3.5 h-3.5 border-t-2 border-r-2 border-inkLight/60 rounded-tr-sm"></span>
+          <span class="pointer-events-none absolute bottom-2.5 left-2.5 w-3.5 h-3.5 border-b-2 border-l-2 border-inkLight/60 rounded-bl-sm"></span>
+          <span class="pointer-events-none absolute bottom-2.5 right-2.5 w-3.5 h-3.5 border-b-2 border-r-2 border-inkLight/60 rounded-br-sm"></span>
+
+          <canvas id="dreamCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+          <textarea id="quickFeelingNote" placeholder="在此寫下零碎的畫面、顏色、氣味或第一時間的情緒感受..."
+            class="hidden absolute inset-0 w-full h-full p-5 bg-transparent resize-none focus:outline-none text-sm leading-relaxed text-ink"></textarea>
+        </div>
+      </div>
+
+      <!-- 左頁底部：反思與顯化目標 -->
+      <div class="grid grid-cols-1 sm:grid-cols-12 flex-1">
+        <div class="sm:col-span-6 p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-borderLine flex flex-col">
+          <div class="flex items-start gap-2 mb-2">
+            <span class="font-serifEn text-3xl leading-none text-inkLight/70 select-none">“</span>
+            <div>
+              <h3 class="text-sm font-bold text-ink">這個夢要告訴我什麼？</h3>
+              <p class="font-serifEn italic text-xs text-inkLight">What message is this dream trying to convey?</p>
+            </div>
+          </div>
+          <textarea id="dreamMessage" rows="6" placeholder="寫下夢境帶給你的啟示或潛意識反思..."
+            class="w-full flex-1 ruled-lines text-ink resize-none focus:outline-none"></textarea>
+        </div>
+
+        <div class="sm:col-span-6 p-4 sm:p-5 bg-paperDark/35 flex flex-col justify-between">
+          <div>
+            <div class="flex items-start justify-between gap-2 mb-3">
+              <div>
+                <h3 class="text-sm font-bold text-ink text-right sm:text-left">設定顯化目標</h3>
+                <p class="font-serifEn italic text-xs text-inkLight">Setting Manifestation Goals</p>
+              </div>
+              <span class="font-serifEn text-3xl leading-none text-inkLight/70 select-none">”</span>
+            </div>
+            <div id="manifestationList" class="space-y-3 mt-2"></div>
+          </div>
+          <p class="text-[11px] text-inkLight mt-4 italic">將夢境的靈感轉化為清醒世界的具體行動。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 右頁 (RIGHT PAGE) ==================== -->
+    <section class="book-spine-right flex flex-col">
+
+      <div class="border-b border-borderLine">
+        <div class="px-5 pt-4 pb-3 border-b border-borderLine flex flex-wrap items-baseline justify-between gap-2 bg-paperDark/30">
+          <h2 class="font-serifEn italic font-bold text-2xl sm:text-3xl text-ink tracking-tight">Dream Unraveled;</h2>
+          <p class="text-[11px] sm:text-xs text-inkLight">
+            在夢境消逝之前，你可以記錄下來留住它 <span class="font-serifEn italic ml-1">Record your dreamscapes before they fade.</span>
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12">
+          <div class="sm:col-span-6 border-b sm:border-b-0 sm:border-r border-borderLine divide-y divide-borderLine">
+            <div class="px-4 py-2.5 flex items-center justify-between gap-2">
+              <div>
+                <span class="text-xs font-medium text-ink block leading-none">日期</span>
+                <span class="font-serifEn italic text-xs text-inkLight">Date</span>
+              </div>
+              <input id="dreamDate" type="date" class="text-sm text-ink bg-transparent focus:outline-none text-right font-medium" />
+            </div>
+            <div class="px-4 py-2.5 flex items-center justify-between gap-2">
+              <div>
+                <span class="text-xs font-medium text-ink block leading-none">編號</span>
+                <span class="font-serifEn italic text-xs text-inkLight">No.</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-xs text-inkLight">#</span>
+                <input id="dreamNo" type="text" value="001" class="w-20 text-sm text-ink bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none text-right font-medium" />
+              </div>
+            </div>
+          </div>
+
+          <div class="sm:col-span-6 px-4 py-2.5 flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-medium text-ink block leading-none">在哪裡做夢</span>
+              <span class="font-serifEn italic text-xs text-inkLight">Where</span>
+            </div>
+            <input id="dreamWhere" type="text" placeholder="例如：家中睡房、酒店、長途航班..."
+              class="mt-2 w-full text-sm text-ink bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none pb-1" />
+          </div>
+        </div>
+      </div>
+
+      <!-- The Dream 夢境描述 -->
+      <div class="p-4 sm:p-5 border-b border-borderLine flex-1 flex flex-col">
+        <div class="flex items-center gap-2 mb-2">
+          <h3 class="font-serifEn italic font-bold text-xl text-ink">The Dream</h3>
+          <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+          </svg>
+          <span class="text-xs font-medium text-inkLight tracking-widest">夢境描述</span>
+        </div>
+        <textarea id="dreamNarrative" rows="9" placeholder="詳細記錄夢境的場景、情節發展、對話與細節..."
+          class="w-full flex-1 ruled-lines text-ink resize-none focus:outline-none"></textarea>
+      </div>
+
+      <!-- 右頁底部 -->
+      <div class="grid grid-cols-1 md:grid-cols-12">
+
+        <div class="md:col-span-6 border-b md:border-b-0 md:border-r border-borderLine divide-y divide-borderLine text-xs">
+          <div class="p-3.5">
+            <div class="mb-2">
+              <span class="font-bold text-ink">什麼類型的夢境</span>
+              <span class="font-serifEn italic text-inkLight ml-1">Dream Type</span>
+            </div>
+            <div id="dreamTypeContainer" class="grid grid-cols-2 gap-y-1.5 gap-x-2"></div>
+            <input id="dreamTypeOtherText" type="text" placeholder="其他類型說明..."
+              class="mt-2 w-full bg-paperDark/60 border border-borderLine rounded px-2 py-1 text-xs focus:outline-none focus:border-accent" />
+          </div>
+
+          <div class="p-3.5">
+            <div class="mb-2">
+              <span class="font-bold text-ink">有什麼人物在你夢境</span>
+              <span class="font-serifEn italic text-inkLight ml-1">Characters</span>
+            </div>
+            <div id="charactersContainer" class="grid grid-cols-2 gap-y-1.5 gap-x-2"></div>
+            <input id="charactersOtherText" type="text" placeholder="其他人物（如：舊同學、偶像、動物）..."
+              class="mt-2 w-full bg-paperDark/60 border border-borderLine rounded px-2 py-1 text-xs focus:outline-none focus:border-accent" />
+          </div>
+
+          <div class="p-3.5">
+            <div class="mb-2">
+              <span class="font-bold text-ink">夢境視覺</span>
+              <span class="font-serifEn italic text-inkLight ml-1">Dream vision</span>
+            </div>
+            <div id="visionContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-2"></div>
+          </div>
+        </div>
+
+        <div class="md:col-span-6 divide-y divide-borderLine text-xs">
+          <div class="p-3.5 space-y-3">
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="font-bold text-ink">睡眠質素 <span class="font-serifEn italic font-normal text-inkLight">Sleep Wellness</span></span>
+                <span id="wellnessValLabel" class="font-serifEn font-bold text-accent text-sm">4 / 5</span>
+              </div>
+              <div id="sleepWellnessScale" class="flex items-center justify-between px-1"></div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="font-bold text-ink">睡眠中斷 <span class="font-serifEn italic font-normal text-inkLight">Interruptions</span></span>
+                <span id="interruptionValLabel" class="font-serifEn font-bold text-accent text-sm">1 / 5</span>
+              </div>
+              <div id="sleepInterruptionScale" class="flex items-center justify-between px-1"></div>
+            </div>
+          </div>
+
+          <div class="p-3.5">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-ink">睡眠時間 <span class="font-serifEn italic font-normal text-inkLight">Hours Slept</span></span>
+              <span id="totalHoursBadge" class="px-2 py-0.5 rounded bg-accentSoft text-accent font-medium text-[11px]">共 7.5 小時</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="bg-paperDark/50 p-2 rounded border border-borderLine/70">
+                <label class="block text-[10px] font-serifEn italic text-inkLight mb-0.5">Start at 入睡</label>
+                <input id="sleepStart" type="time" value="23:30" onchange="calculateSleepHours()"
+                  class="w-full bg-transparent text-xs font-medium text-ink focus:outline-none" />
+              </div>
+              <div class="bg-paperDark/50 p-2 rounded border border-borderLine/70">
+                <label class="block text-[10px] font-serifEn italic text-inkLight mb-0.5">Finish at 醒來</label>
+                <input id="sleepFinish" type="time" value="07:00" onchange="calculateSleepHours()"
+                  class="w-full bg-transparent text-xs font-medium text-ink focus:outline-none" />
+              </div>
+            </div>
+          </div>
+
+          <div class="p-3.5">
+            <label class="block font-bold text-ink mb-1">睡前活動 <span class="font-serifEn italic font-normal text-inkLight">Pre-Sleep Activity</span></label>
+            <input id="preSleepActivity" type="text" placeholder="例如：閱讀、聽輕音樂、冥想、滑手機..."
+              class="w-full border-b border-dashed border-borderLine bg-transparent py-1 text-xs text-ink focus:border-accent focus:outline-none" />
+          </div>
+
+          <div class="p-3.5">
+            <div class="font-bold text-ink mb-2">感覺 <span class="font-serifEn italic font-normal text-inkLight">Feelings</span></div>
+            <div id="feelingsContainer" class="grid grid-cols-3 gap-1.5"></div>
+            <div class="mt-2 flex items-center gap-1.5">
+              <span class="text-inkLight shrink-0">其他 Others:</span>
+              <input id="feelingsOtherText" type="text" placeholder="自訂情緒..."
+                class="w-full border-b border-dashed border-borderLine bg-transparent py-0.5 text-xs text-ink focus:border-accent focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- 過往夢境抽屜側邊欄 -->
+  <div id="historyOverlay" onclick="toggleHistoryDrawer()" class="no-print fixed inset-0 bg-black/35 backdrop-blur-[1px] z-40 hidden"></div>
+  <aside id="historyDrawer" class="no-print fixed top-0 right-0 h-full w-full max-w-md bg-paper border-l border-borderLine shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-4 border-b border-borderLine flex items-center justify-between bg-paperDark/60">
+      <div>
+        <h2 class="font-serifEn italic font-bold text-xl text-ink">Dream Archive</h2>
+        <p class="text-xs text-inkLight">點擊載入過往儲存的夢境記錄</p>
+      </div>
+      <button onclick="toggleHistoryDrawer()" class="p-2 rounded-lg hover:bg-paperDark text-inkLight hover:text-ink cursor-pointer" aria-label="關閉">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- 搜尋與篩選 -->
+    <div class="p-3 border-b border-borderLine space-y-2 bg-paper">
+      <input id="searchInput" type="search" placeholder="搜尋內容、地點、日期、編號..."
+        class="w-full text-sm bg-white border border-borderLine rounded-lg px-3 py-2 focus:outline-none focus:border-accent" />
+      <div class="grid grid-cols-2 gap-2">
+        <select id="filterType" class="text-xs bg-white border border-borderLine rounded-lg px-2 py-1.5 focus:outline-none focus:border-accent"></select>
+        <select id="filterFeeling" class="text-xs bg-white border border-borderLine rounded-lg px-2 py-1.5 focus:outline-none focus:border-accent"></select>
+      </div>
+    </div>
+
+    <div id="historyList" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+
+    <!-- 備份 -->
+    <div class="p-3 border-t border-borderLine bg-paperDark/60 flex items-center gap-2">
+      <button onclick="exportJSON()" class="flex-1 px-3 py-2 text-xs font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition cursor-pointer">匯出備份 (JSON)</button>
+      <button onclick="document.getElementById('importFile').click()" class="flex-1 px-3 py-2 text-xs font-medium rounded-lg border border-borderLine bg-white hover:bg-paperDark text-ink transition cursor-pointer">匯入備份</button>
+      <input id="importFile" type="file" accept="application/json,.json" class="hidden" />
+    </div>
+  </aside>
+
+  <script>
+    // ==================== 選項資料定義 ====================
+    const SLEEP_WITH_OPTIONS = [
+      { id: 'single', labelEn: 'SINGLE', labelZh: '獨自', svg: `<svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5 20c0-3.87 3.13-7 7-7s7 3.13 7 7H5z"/></svg>` },
+      { id: '2ppl', labelEn: '2ppl', labelZh: '二人', svg: `<svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3.2"/><path d="M3 19c0-3.3 2.7-6 6-6s6 2.7 6 6H3z"/><circle cx="16.5" cy="8" r="2.7"/><path d="M15.5 13.5c2.8.4 5 2.7 5 5.5h-4.5"/></svg>` },
+      { id: '3ppl', labelEn: '3ppl', labelZh: '三人', svg: `<svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="3"/><circle cx="6" cy="8" r="2.5"/><circle cx="18" cy="8" r="2.5"/><path d="M7 19c0-2.8 2.2-5 5-5s5 2.2 5 5H7zm-5 0c0-2.2 1.6-4 3.7-4.3M22 19c0-2.2-1.6-4-3.7-4.3"/></svg>` },
+      { id: 'family', labelEn: 'FAMILY', labelZh: '家人', svg: `<svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3L2 12h3v8h6v-5h2v5h6v-8h3L12 3z"/></svg>` },
+      { id: 'pet', labelEn: 'ANIMALS', labelZh: '寵物', svg: `<svg class="w-5 h-5 mx-auto" fill="currentColor" viewBox="0 0 24 24"><circle cx="6.5" cy="9.5" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14" cy="6.5" r="2"/><circle cx="17.5" cy="9.5" r="2"/><path d="M12 11.5c-3 0-5.5 2.2-5.5 4.8 0 1.5 1.2 2.7 2.7 2.7.9 0 1.8-.4 2.8-.4s1.9.4 2.8.4c1.5 0 2.7-1.2 2.7-2.7 0-2.6-2.5-4.8-5.5-4.8z"/></svg>` }
+    ];
+
+    const DREAM_TYPES = [
+      { id: 'mundane', zh: '平凡', en: 'Mundane' },
+      { id: 'daydream', zh: '白日夢', en: 'Daydream' },
+      { id: 'fragmented', zh: '碎片化的', en: 'Fragmented' },
+      { id: 'nightmare', zh: '惡夢', en: 'Nightmare' },
+      { id: 'prophetic', zh: '預言', en: 'Prophetic' },
+      { id: 'vivid', zh: '生動', en: 'Vivid' },
+      { id: 'others', zh: '其他', en: 'Others' }
+    ];
+
+    const CHARACTER_OPTIONS = [
+      { id: 'myself', zh: '自己', en: 'Myself' },
+      { id: 'stranger', zh: '陌生人', en: 'Stranger' },
+      { id: 'partner', zh: '伴侶', en: 'Partner' },
+      { id: 'family', zh: '家人', en: 'Family' },
+      { id: 'others', zh: '其他', en: 'Others' }
+    ];
+
+    const VISION_OPTIONS = [
+      { id: 'first', zh: '第一人稱視覺', en: 'First-Person POV' },
+      { id: 'third', zh: '客觀第三人稱', en: 'Objective Third-Person' },
+      { id: 'omniscient', zh: '全知視角', en: 'Omniscient' },
+      { id: 'multi', zh: '多視角 / 多人稱', en: 'Multi-Perspective' }
+    ];
+
+    const FEELING_OPTIONS = [
+      { id: 'good', en: 'Good', zh: '很好' },
+      { id: 'normal', en: 'Normal', zh: '一般般' },
+      { id: 'tired', en: 'Tired', zh: '疲倦' },
+      { id: 'anxious', en: 'Anxious', zh: '焦慮的' },
+      { id: 'confused', en: 'Confused', zh: '困惑的' },
+      { id: 'bad', en: 'BAD', zh: '不好' }
+    ];
+
+    // ==================== 狀態 ====================
+    const blankGoals = () => [
+      { checked: false, text: '' }, { checked: false, text: '' },
+      { checked: false, text: '' }, { checked: false, text: '' }
+    ];
+
+    let state = {
+      id: null,
+      sleepWith: 'single',
+      dreamTypes: [],
+      characters: [],
+      vision: 'first',
+      wellness: 4,
+      interruptions: 1,
+      feeling: 'good',
+      goals: blankGoals()
+    };
+
+    let entriesCache = [];   // 記憶體內嘅記錄副本（由 IndexedDB 載入）
+    let dirty = false;       // 係咪有未儲存嘅改動
+    let draftTimer = null;
+    let filters = { q: '', type: '', feeling: '' };
+
+    const OLD_LS_KEY = 'dream_unraveled_entries_v1'; // 舊版 localStorage key（用嚟遷移）
+
+    // ==================== 工具函式 ====================
+    // 用本地時間產生 YYYY-MM-DD（避免 toISOString 用 UTC 令日期差一日）
+    function localDateStr(d = new Date()) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      document.getElementById('toastDot').className =
+        'w-2 h-2 rounded-full ' + (isError ? 'bg-red-400' : 'bg-emerald-400');
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, isError ? 4500 : 2400);
+    }
+
+    // ==================== IndexedDB ====================
+    let db = null;
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        if (!window.indexedDB) return reject(new Error('此瀏覽器不支援 IndexedDB'));
+        const req = indexedDB.open('dream_unraveled', 1);
+        req.onupgradeneeded = () => {
+          const d = req.result;
+          if (!d.objectStoreNames.contains('entries')) d.createObjectStore('entries', { keyPath: 'id' });
+          if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta');
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idb(storeName, mode, fn) {
+      return new Promise((resolve, reject) => {
+        const t = db.transaction(storeName, mode);
+        const store = t.objectStore(storeName);
+        let result;
+        const req = fn(store);
+        if (req) req.onsuccess = () => { result = req.result; };
+        t.oncomplete = () => resolve(result);
+        t.onerror = () => reject(t.error);
+        t.onabort = () => reject(t.error || new Error('交易中止'));
+      });
+    }
+
+    const dbGetAllEntries = () => idb('entries', 'readonly', s => s.getAll());
+    const dbPutEntry = (rec) => idb('entries', 'readwrite', s => s.put(rec));
+    const dbDeleteEntry = (id) => idb('entries', 'readwrite', s => s.delete(id));
+    const dbGetMeta = (key) => idb('meta', 'readonly', s => s.get(key));
+    const dbSetMeta = (key, val) => idb('meta', 'readwrite', s => s.put(val, key));
+    const dbDelMeta = (key) => idb('meta', 'readwrite', s => s.delete(key));
+
+    function dbPutMany(records) {
+      return new Promise((resolve, reject) => {
+        const t = db.transaction('entries', 'readwrite');
+        const s = t.objectStore('entries');
+        records.forEach(r => s.put(r));
+        t.oncomplete = () => resolve();
+        t.onerror = () => reject(t.error);
+        t.onabort = () => reject(t.error || new Error('交易中止'));
+      });
+    }
+
+    function sortEntries() {
+      entriesCache.sort((a, b) => {
+        const d = String(b.date || '').localeCompare(String(a.date || ''));
+        if (d !== 0) return d;
+        return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+      });
+    }
+
+    function nextEntryNo() {
+      const max = entriesCache.reduce((m, e) => {
+        const n = parseInt(e.no, 10);
+        return Number.isFinite(n) && n > m ? n : m;
+      }, 0);
+      return String(max + 1).padStart(3, '0');
+    }
+
+    // ==================== 繪圖畫布（Pointer Events） ====================
+    const canvas = document.getElementById('dreamCanvas');
+    const canvasWrap = document.getElementById('canvasWrap');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let activePointerId = null;
+    let penColor = '#2C2A29';
+    let isEraser = false;
+    let inked = false;           // 畫布上係咪有內容
+    let lastW = 0, lastH = 0;    // 畫布嘅邏輯尺寸（CSS px）
+
+    function resizeCanvas() {
+      const rect = canvasWrap.getBoundingClientRect();
+      const w = Math.round(rect.width), h = Math.round(rect.height);
+      if (w === 0 || h === 0) return;
+      // 只喺畫布尺寸真係改變時先重設（手機彈鍵盤只改視窗高度，畫布唔變，就唔會變形）
+      if (w === lastW && h === lastH && canvas.width > 0) return;
+
+      let snap = null;
+      if (inked && canvas.width > 0 && lastW > 0) {
+        snap = document.createElement('canvas');
+        snap.width = canvas.width;
+        snap.height = canvas.height;
+        snap.getContext('2d').drawImage(canvas, 0, 0);
+      }
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (snap) drawContain(snap, lastW, lastH);
+      lastW = w; lastH = h;
+    }
+
+    // 將圖片按比例置中畫入畫布（logicalW/H 係圖片原本嘅邏輯尺寸）
+    function drawContain(source, logicalW, logicalH) {
+      const w = lastW, h = lastH;
+      if (!logicalW || !logicalH) { logicalW = source.width; logicalH = source.height; }
+      const scale = Math.min(w / logicalW, h / logicalH);
+      const dw = logicalW * scale, dh = logicalH * scale;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(source, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    }
+
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    function applyPen() {
+      const size = parseFloat(document.getElementById('penSize').value);
+      if (isEraser) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.lineWidth = size * 5;
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = penColor;
+        ctx.fillStyle = penColor;
+        ctx.lineWidth = size;
+      }
+    }
+
+    function onPointerDown(e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      isDrawing = true;
+      activePointerId = e.pointerId;
+      canvas.setPointerCapture(e.pointerId);
+      const pos = getCanvasCoords(e);
+      applyPen();
+      // 點一下都會畫到一個點
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      ctx.lineTo(pos.x + 0.01, pos.y + 0.01);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      if (!isEraser) inked = true;
+      e.preventDefault();
+    }
+
+    function onPointerMove(e) {
+      if (!isDrawing || e.pointerId !== activePointerId) return;
+      e.preventDefault();
+      const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      applyPen();
+      for (const ev of (events.length ? events : [e])) {
+        const pos = getCanvasCoords(ev);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      }
+    }
+
+    function onPointerUp(e) {
+      if (!isDrawing || e.pointerId !== activePointerId) return;
+      isDrawing = false;
+      activePointerId = null;
+      ctx.closePath();
+      ctx.globalCompositeOperation = 'source-over';
+      markDirty();
+    }
+
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointercancel', onPointerUp);
+
+    // 畫筆顏色
+    function updateSwatches() {
+      document.querySelectorAll('.pen-swatch').forEach(btn => {
+        const active = !isEraser && btn.dataset.color === penColor;
+        btn.classList.toggle('ring-2', active);
+        btn.classList.toggle('ring-offset-1', active);
+        btn.classList.toggle('ring-accent', active);
+      });
+    }
+
+    document.querySelectorAll('.pen-swatch').forEach(btn => {
+      btn.addEventListener('click', () => setPenColor(btn.dataset.color));
+    });
+
+    function setPenColor(color) {
+      isEraser = false;
+      penColor = color;
+      document.getElementById('eraserBtn').classList.remove('bg-accent', 'text-white');
+      updateSwatches();
+    }
+
+    function toggleEraser() {
+      isEraser = !isEraser;
+      document.getElementById('eraserBtn').classList.toggle('bg-accent', isEraser);
+      document.getElementById('eraserBtn').classList.toggle('text-white', isEraser);
+      updateSwatches();
+    }
+
+    function clearCanvas(confirmFirst = false) {
+      if (confirmFirst && inked && !confirm('確定要清除畫布上嘅內容？')) return;
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+      inked = false;
+      if (confirmFirst) markDirty();
+    }
+
+    // 將已儲存嘅圖載入畫布
+    function loadSketch(dataUrl, logicalW, logicalH) {
+      return new Promise(resolve => {
+        clearCanvas(false);
+        if (!dataUrl) return resolve();
+        const img = new Image();
+        img.onload = () => {
+          resizeCanvas();
+          drawContain(img, logicalW || img.naturalWidth, logicalH || img.naturalHeight);
+          inked = true;
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = dataUrl;
+      });
+    }
+
+    // 縮圖（用紙張底色，輸出 JPEG，列表顯示用）
+    function makeThumb() {
+      if (!inked) return null;
+      const tw = 240;
+      const th = Math.max(1, Math.round(tw * canvas.height / canvas.width));
+      const c = document.createElement('canvas');
+      c.width = tw; c.height = th;
+      const x = c.getContext('2d');
+      x.fillStyle = '#FAF8F5';
+      x.fillRect(0, 0, tw, th);
+      x.drawImage(canvas, 0, 0, tw, th);
+      return c.toDataURL('image/jpeg', 0.7);
+    }
+
+    // 示範夢境用嘅月亮與星星草圖
+    function makeSampleSketch() {
+      const c = document.createElement('canvas');
+      c.width = 600; c.height = 340;
+      const x = c.getContext('2d');
+      x.lineCap = 'round'; x.lineJoin = 'round';
+      x.strokeStyle = '#4F5D75'; x.lineWidth = 2.5;
+      x.beginPath();
+      x.arc(300, 150, 52, 0.3 * Math.PI, 1.7 * Math.PI);
+      x.stroke();
+      x.strokeStyle = '#D98A2B'; x.lineWidth = 2;
+      [[120, 80], [470, 70], [520, 190], [170, 220], [380, 250]].forEach(([sx, sy]) => {
+        x.beginPath();
+        x.moveTo(sx - 8, sy); x.lineTo(sx + 8, sy);
+        x.moveTo(sx, sy - 8); x.lineTo(sx, sy + 8);
+        x.stroke();
+      });
+      x.strokeStyle = '#2C2A29'; x.lineWidth = 2;
+      x.beginPath();
+      x.moveTo(60, 300); x.lineTo(540, 300);
+      x.moveTo(230, 300); x.lineTo(230, 262); x.lineTo(370, 262); x.lineTo(370, 300);
+      x.stroke();
+      return { dataUrl: c.toDataURL('image/png'), w: 600, h: 340 };
+    }
+
+    function setSketchMode(mode) {
+      const noteEl = document.getElementById('quickFeelingNote');
+      const drawBtn = document.getElementById('modeDrawBtn');
+      const noteBtn = document.getElementById('modeNoteBtn');
+      const toolbar = document.getElementById('drawToolbar');
+      const on = ['bg-white', 'text-ink', 'font-medium', 'shadow-sm'];
+
+      if (mode === 'draw') {
+        noteEl.classList.add('hidden');
+        toolbar.classList.remove('opacity-40', 'pointer-events-none');
+        drawBtn.classList.add(...on); drawBtn.classList.remove('text-inkLight');
+        noteBtn.classList.remove(...on); noteBtn.classList.add('text-inkLight');
+      } else {
+        noteEl.classList.remove('hidden');
+        toolbar.classList.add('opacity-40', 'pointer-events-none');
+        noteBtn.classList.add(...on); noteBtn.classList.remove('text-inkLight');
+        drawBtn.classList.remove(...on); drawBtn.classList.add('text-inkLight');
+        noteEl.focus();
+      }
+    }
+
+    // ==================== 互動 UI 渲染 ====================
+    function checkboxHTML(checked) {
+      return `<span class="mt-0.5 w-3.5 h-3.5 rounded-sm border flex items-center justify-center transition ${
+        checked ? 'bg-accent border-accent text-white' : 'border-inkLight/60 bg-white group-hover:border-accent'
+      }">${checked ? '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}</span>`;
+    }
+
+    function labelTextHTML(item) {
+      return `<span class="leading-tight">
+        <span class="block text-ink font-medium">${item.zh}</span>
+        <span class="block font-serifEn italic text-[11px] text-inkLight">${item.en}</span>
+      </span>`;
+    }
+
+    function renderInteractiveControls() {
+      // 1. Sleep with who?
+      document.getElementById('sleepWithContainer').innerHTML = SLEEP_WITH_OPTIONS.map(opt => {
+        const active = state.sleepWith === opt.id;
+        return `
+          <button type="button" onclick="selectSleepWith('${opt.id}')"
+            class="p-1.5 rounded-lg border transition flex flex-col items-center justify-center cursor-pointer ${
+              active ? 'bg-accent text-white border-accent shadow-sm' : 'bg-transparent text-inkLight border-transparent hover:bg-paperDark hover:text-ink'
+            }">
+            ${opt.svg}
+            <span class="text-[9px] font-bold tracking-wider mt-1">${opt.labelEn}</span>
+            <span class="text-[10px] opacity-80">${opt.labelZh}</span>
+          </button>`;
+      }).join('');
+
+      // 2. Dream Type
+      document.getElementById('dreamTypeContainer').innerHTML = DREAM_TYPES.map(item => `
+        <label onclick="toggleArrayItem('dreamTypes', '${item.id}')" class="flex items-start gap-2 cursor-pointer select-none group">
+          ${checkboxHTML(state.dreamTypes.includes(item.id))}${labelTextHTML(item)}
+        </label>`).join('');
+
+      // 3. Characters
+      document.getElementById('charactersContainer').innerHTML = CHARACTER_OPTIONS.map(item => `
+        <label onclick="toggleArrayItem('characters', '${item.id}')" class="flex items-start gap-2 cursor-pointer select-none group">
+          ${checkboxHTML(state.characters.includes(item.id))}${labelTextHTML(item)}
+        </label>`).join('');
+
+      // 4. Dream Vision
+      document.getElementById('visionContainer').innerHTML = VISION_OPTIONS.map(item => {
+        const active = state.vision === item.id;
+        return `
+          <label onclick="selectSingle('vision', '${item.id}')" class="flex items-start gap-2 cursor-pointer select-none group">
+            <span class="mt-0.5 w-3.5 h-3.5 rounded-full border flex items-center justify-center transition ${
+              active ? 'border-accent' : 'border-inkLight/60 bg-white group-hover:border-accent'
+            }">${active ? '<span class="w-2 h-2 rounded-full bg-accent"></span>' : ''}</span>
+            ${labelTextHTML(item)}
+          </label>`;
+      }).join('');
+
+      // 5. Wellness / Interruptions
+      renderScale('sleepWellnessScale', 'wellness', state.wellness, 'wellnessValLabel');
+      renderScale('sleepInterruptionScale', 'interruptions', state.interruptions, 'interruptionValLabel');
+
+      // 6. Feelings
+      document.getElementById('feelingsContainer').innerHTML = FEELING_OPTIONS.map(item => {
+        const active = state.feeling === item.id;
+        return `
+          <button type="button" onclick="selectSingle('feeling', '${item.id}')"
+            class="px-2 py-1.5 rounded-lg border text-left transition flex items-center gap-1.5 cursor-pointer ${
+              active ? 'bg-accentSoft border-accent text-ink font-medium' : 'bg-white/70 border-borderLine text-inkLight hover:text-ink'
+            }">
+            <span class="w-2.5 h-2.5 rounded-full border shrink-0 flex items-center justify-center ${active ? 'border-accent' : 'border-inkLight'}">
+              ${active ? '<span class="w-1.5 h-1.5 rounded-full bg-accent"></span>' : ''}
+            </span>
+            <span class="leading-tight">
+              <span class="block font-serifEn font-bold text-xs">${item.en}</span>
+              <span class="block text-[10px]">${item.zh}</span>
+            </span>
+          </button>`;
+      }).join('');
+
+      // 7. Manifestation Goals
+      document.getElementById('manifestationList').innerHTML = state.goals.map((g, idx) => `
+        <div class="flex items-center gap-2.5">
+          <button type="button" onclick="toggleGoal(${idx})"
+            class="w-4 h-4 rounded-sm border shrink-0 flex items-center justify-center transition cursor-pointer ${
+              g.checked ? 'bg-accent border-accent text-white' : 'bg-white border-inkLight/70 hover:border-accent'
+            }">
+            ${g.checked ? '<svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}
+          </button>
+          <input type="text" value="${escapeHtml(g.text)}" oninput="updateGoalText(${idx}, this.value)"
+            placeholder="顯化行動目標 #${idx + 1}..."
+            class="w-full bg-transparent border-b border-borderLine focus:border-accent focus:outline-none text-xs py-1 ${
+              g.checked ? 'line-through text-inkLight' : 'text-ink'
+            }" />
+        </div>`).join('');
+    }
+
+    function renderScale(containerId, key, currentVal, labelId) {
+      document.getElementById(labelId).textContent = `${currentVal} / 5`;
+      let html = '';
+      for (let i = 0; i <= 5; i++) {
+        const active = currentVal === i;
+        html += `
+          <button type="button" onclick="selectSingle('${key}', ${i})" class="flex flex-col items-center gap-1 group cursor-pointer">
+            <span class="w-5 h-5 rounded-full border flex items-center justify-center transition ${
+              active ? 'bg-accent border-accent text-white shadow-sm' : 'bg-white border-inkLight/60 group-hover:border-accent'
+            }">${active ? '<span class="w-2 h-2 rounded-full bg-white"></span>' : ''}</span>
+            <span class="text-[10px] font-serifEn ${active ? 'font-bold text-accent' : 'text-inkLight'}">${i}</span>
+          </button>`;
+      }
+      document.getElementById(containerId).innerHTML = html;
+    }
+
+    function selectSleepWith(id) { state.sleepWith = id; renderInteractiveControls(); markDirty(); }
+    function toggleArrayItem(key, id) {
+      const idx = state[key].indexOf(id);
+      if (idx > -1) state[key].splice(idx, 1); else state[key].push(id);
+      renderInteractiveControls(); markDirty();
+    }
+    function selectSingle(key, val) { state[key] = val; renderInteractiveControls(); markDirty(); }
+    function toggleGoal(idx) { state.goals[idx].checked = !state.goals[idx].checked; renderInteractiveControls(); markDirty(); }
+    function updateGoalText(idx, val) { state.goals[idx].text = val; markDirty(); }
+
+    function calculateSleepHours() {
+      const start = document.getElementById('sleepStart').value;
+      const finish = document.getElementById('sleepFinish').value;
+      if (!start || !finish) return;
+      const [sh, sm] = start.split(':').map(Number);
+      const [fh, fm] = finish.split(':').map(Number);
+      let startMins = sh * 60 + sm;
+      let finishMins = fh * 60 + fm;
+      if (finishMins < startMins) finishMins += 24 * 60; // 跨夜
+      document.getElementById('totalHoursBadge').textContent =
+        `共 ${((finishMins - startMins) / 60).toFixed(1)} 小時`;
+    }
+
+    // ==================== 髒標記 & 自動草稿 ====================
+    function markDirty() {
+      dirty = true;
+      document.getElementById('dirtyBadge').classList.remove('hidden');
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(saveDraft, 800);
+    }
+
+    function markClean() {
+      dirty = false;
+      clearTimeout(draftTimer);
+      document.getElementById('dirtyBadge').classList.add('hidden');
+    }
+
+    async function saveDraft() {
+      if (!dirty || !db) return;
+      try {
+        await dbSetMeta('draft', collectRecord(false));
+      } catch (err) {
+        console.warn('草稿儲存失敗', err);
+      }
+    }
+
+    // 頁面轉去背景／關閉前，即時存一次草稿
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') { clearTimeout(draftTimer); saveDraft(); }
+    });
+    window.addEventListener('pagehide', () => { clearTimeout(draftTimer); saveDraft(); });
+
+    // 主頁面任何輸入都視為有改動
+    ['input', 'change'].forEach(evt => {
+      document.querySelector('main').addEventListener(evt, markDirty);
+    });
+
+    function confirmDiscardIfDirty() {
+      return !dirty || confirm('目前有未儲存嘅內容，確定要放棄？');
+    }
+
+    // ==================== 收集 / 載入記錄 ====================
+    function collectRecord(withThumb = true) {
+      let ranking = parseInt(document.getElementById('dreamRanking').value, 10);
+      if (!Number.isFinite(ranking)) ranking = 0;
+      ranking = Math.max(0, Math.min(100, ranking));
+
+      return {
+        id: state.id,
+        date: document.getElementById('dreamDate').value,
+        no: document.getElementById('dreamNo').value,
+        ranking,
+        where: document.getElementById('dreamWhere').value,
+        sleepWith: state.sleepWith,
+        sketchDataUrl: inked ? canvas.toDataURL('image/png') : null,
+        sketchW: lastW,
+        sketchH: lastH,
+        thumb: withThumb ? makeThumb() : null,
+        quickFeelingNote: document.getElementById('quickFeelingNote').value,
+        dreamNarrative: document.getElementById('dreamNarrative').value,
+        dreamMessage: document.getElementById('dreamMessage').value,
+        goals: state.goals.map(g => ({ checked: !!g.checked, text: g.text })),
+        dreamTypes: [...state.dreamTypes],
+        dreamTypeOtherText: document.getElementById('dreamTypeOtherText').value,
+        characters: [...state.characters],
+        charactersOtherText: document.getElementById('charactersOtherText').value,
+        vision: state.vision,
+        wellness: state.wellness,
+        interruptions: state.interruptions,
+        sleepStart: document.getElementById('sleepStart').value,
+        sleepFinish: document.getElementById('sleepFinish').value,
+        preSleepActivity: document.getElementById('preSleepActivity').value,
+        feeling: state.feeling,
+        feelingsOtherText: document.getElementById('feelingsOtherText').value,
+        updatedAt: new Date().toISOString()
+      };
+    }
+
+    async function loadEntry(entry) {
+      state.id = entry.id || null;
+      state.sleepWith = entry.sleepWith || 'single';
+      state.dreamTypes = Array.isArray(entry.dreamTypes) ? [...entry.dreamTypes] : [];
+      state.characters = Array.isArray(entry.characters) ? [...entry.characters] : [];
+      state.vision = entry.vision || 'first';
+      state.wellness = entry.wellness ?? 4;
+      state.interruptions = entry.interruptions ?? 1;
+      state.feeling = entry.feeling || 'good';
+      state.goals = (Array.isArray(entry.goals) && entry.goals.length)
+        ? entry.goals.map(g => ({ checked: !!g.checked, text: g.text || '' }))
+        : blankGoals();
+      while (state.goals.length < 4) state.goals.push({ checked: false, text: '' });
+
+      document.getElementById('dreamDate').value = entry.date || '';
+      document.getElementById('dreamNo').value = entry.no || '001';
+      document.getElementById('dreamRanking').value = entry.ranking ?? 80;
+      document.getElementById('dreamWhere').value = entry.where || '';
+      document.getElementById('quickFeelingNote').value = entry.quickFeelingNote || '';
+      document.getElementById('dreamNarrative').value = entry.dreamNarrative || '';
+      document.getElementById('dreamMessage').value = entry.dreamMessage || '';
+      document.getElementById('dreamTypeOtherText').value = entry.dreamTypeOtherText || '';
+      document.getElementById('charactersOtherText').value = entry.charactersOtherText || '';
+      document.getElementById('sleepStart').value = entry.sleepStart || '23:30';
+      document.getElementById('sleepFinish').value = entry.sleepFinish || '07:00';
+      document.getElementById('preSleepActivity').value = entry.preSleepActivity || '';
+      document.getElementById('feelingsOtherText').value = entry.feelingsOtherText || '';
+
+      calculateSleepHours();
+      renderInteractiveControls();
+      await loadSketch(entry.sketchDataUrl, entry.sketchW, entry.sketchH);
+    }
+
+    async function createNewEntry(force = false) {
+      if (!force && !confirmDiscardIfDirty()) return;
+      await loadEntry({
+        id: null,
+        date: localDateStr(),
+        no: nextEntryNo(),
+        ranking: 80,
+        where: '',
+        sleepWith: 'single',
+        goals: blankGoals(),
+        dreamTypes: [],
+        characters: ['myself'],
+        vision: 'first',
+        wellness: 4,
+        interruptions: 0,
+        sleepStart: '23:30',
+        sleepFinish: '07:30',
+        feeling: 'good'
+      });
+      markClean();
+      try { await dbDelMeta('draft'); } catch (_) {}
+      if (!force) showToast(`已開啟全新夢境頁 #${document.getElementById('dreamNo').value}`);
+    }
+
+    // ==================== 儲存 / 刪除 ====================
+    async function saveCurrentEntry() {
+      try {
+        const record = collectRecord(true);
+        record.id = state.id || ('dream_' + Date.now());
+        await dbPutEntry(record);
+        state.id = record.id;
+
+        const idx = entriesCache.findIndex(e => e.id === record.id);
+        if (idx > -1) entriesCache[idx] = record; else entriesCache.push(record);
+        sortEntries();
+
+        await dbDelMeta('draft');
+        markClean();
+        updateSavedCount();
+        renderHistoryList();
+        showToast('已成功儲存至夢境記錄簿');
+      } catch (err) {
+        console.error(err);
+        showToast('儲存失敗：' + (err && err.message ? err.message : '儲存空間可能已滿'), true);
+      }
+    }
+
+    async function deleteEntry(id) {
+      const entry = entriesCache.find(e => e.id === id);
+      if (!entry) return;
+      if (!confirm(`確定要刪除夢境 #${entry.no || ''}（${entry.date || '未填日期'}）？此操作無法復原。`)) return;
+      try {
+        await dbDeleteEntry(id);
+        entriesCache = entriesCache.filter(e => e.id !== id);
+        updateSavedCount();
+        renderHistoryList();
+        // 如果刪除嘅係目前編輯緊嘅記錄，轉去一頁全新空白頁，避免再儲存時「復活」
+        if (state.id === id) {
+          await createNewEntry(true);
+        }
+        showToast('已刪除該筆記錄');
+      } catch (err) {
+        console.error(err);
+        showToast('刪除失敗：' + err.message, true);
+      }
+    }
+
+    // ==================== 過往夢境抽屜（搜尋／篩選） ====================
+    function toggleHistoryDrawer() {
+      const drawer = document.getElementById('historyDrawer');
+      const overlay = document.getElementById('historyOverlay');
+      const isClosed = drawer.classList.contains('translate-x-full');
+      if (isClosed) {
+        renderHistoryList();
+        overlay.classList.remove('hidden');
+        drawer.classList.remove('translate-x-full');
+      } else {
+        overlay.classList.add('hidden');
+        drawer.classList.add('translate-x-full');
+      }
+    }
+
+    function initFilters() {
+      const typeSel = document.getElementById('filterType');
+      typeSel.innerHTML = '<option value="">所有夢境類型</option>' +
+        DREAM_TYPES.map(t => `<option value="${t.id}">${t.zh} ${t.en}</option>`).join('');
+      const feelSel = document.getElementById('filterFeeling');
+      feelSel.innerHTML = '<option value="">所有感覺</option>' +
+        FEELING_OPTIONS.map(f => `<option value="${f.id}">${f.zh} ${f.en}</option>`).join('');
+
+      document.getElementById('searchInput').addEventListener('input', e => { filters.q = e.target.value.trim().toLowerCase(); renderHistoryList(); });
+      typeSel.addEventListener('change', e => { filters.type = e.target.value; renderHistoryList(); });
+      feelSel.addEventListener('change', e => { filters.feeling = e.target.value; renderHistoryList(); });
+    }
+
+    function entryMatches(e) {
+      if (filters.type && !(e.dreamTypes || []).includes(filters.type)) return false;
+      if (filters.feeling && e.feeling !== filters.feeling) return false;
+      if (filters.q) {
+        const hay = [
+          e.no, e.date, e.where, e.dreamNarrative, e.dreamMessage, e.quickFeelingNote,
+          e.preSleepActivity, e.dreamTypeOtherText, e.charactersOtherText, e.feelingsOtherText,
+          ...(e.goals || []).map(g => g.text)
+        ].join(' ').toLowerCase();
+        if (!hay.includes(filters.q)) return false;
+      }
+      return true;
+    }
+
+    function renderHistoryList() {
+      const container = document.getElementById('historyList');
+      if (entriesCache.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-inkLight text-sm">暫無儲存嘅夢境記錄</div>`;
+        return;
+      }
+      const list = entriesCache.filter(entryMatches);
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 text-inkLight text-sm">搵唔到符合條件嘅夢境</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        const feel = FEELING_OPTIONS.find(f => f.id === item.feeling);
+        const thumb = item.thumb || item.sketchDataUrl;
+        return `
+          <div data-id="${escapeHtml(item.id)}" class="p-3 rounded-xl border border-borderLine bg-white hover:border-accent transition cursor-pointer shadow-sm flex gap-3">
+            ${thumb ? `<img src="${thumb}" alt="" class="w-20 h-14 object-cover rounded-md border border-borderLine shrink-0 bg-paper" />` : ''}
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between mb-1 gap-2">
+                <span class="text-xs font-bold text-accent truncate">No. #${escapeHtml(item.no || '001')} · ${escapeHtml(item.date || '未填日期')}</span>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span class="font-serifEn font-bold text-sm text-ink">${Number(item.ranking) || 0}/100</span>
+                  <button data-del="${escapeHtml(item.id)}" class="text-inkLight hover:text-red-600 p-1 rounded cursor-pointer" title="刪除" aria-label="刪除">
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </div>
+              <p class="text-xs text-ink line-clamp-2 leading-relaxed">${escapeHtml(item.dreamNarrative || item.quickFeelingNote || '（純繪畫夢境記錄）')}</p>
+              ${feel ? `<span class="inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded bg-accentSoft text-accent">${feel.zh}</span>` : ''}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('historyList').addEventListener('click', e => {
+      const del = e.target.closest('[data-del]');
+      if (del) { e.stopPropagation(); deleteEntry(del.dataset.del); return; }
+      const card = e.target.closest('[data-id]');
+      if (card) selectHistoryItem(card.dataset.id);
+    });
+
+    async function selectHistoryItem(id) {
+      const entry = entriesCache.find(e => e.id === id);
+      if (!entry) return;
+      if (!confirmDiscardIfDirty()) return;
+      await loadEntry(entry);
+      markClean();
+      try { await dbDelMeta('draft'); } catch (_) {}
+      toggleHistoryDrawer();
+      showToast(`已載入夢境 #${entry.no}`);
+    }
+
+    function updateSavedCount() {
+      document.getElementById('savedCount').textContent = entriesCache.length;
+    }
+
+    // ==================== 匯出 / 匯入備份 ====================
+    function exportJSON() {
+      if (entriesCache.length === 0) { showToast('暫時冇記錄可以匯出', true); return; }
+      const payload = { app: 'dream-unraveled', version: 1, exportedAt: new Date().toISOString(), entries: entriesCache };
+      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dream-unraveled-${localDateStr().replace(/-/g, '')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      showToast(`已匯出 ${entriesCache.length} 筆記錄`);
+    }
+
+    document.getElementById('importFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      try {
+        const data = JSON.parse(await file.text());
+        const arr = Array.isArray(data) ? data : data.entries;
+        if (!Array.isArray(arr)) throw new Error('檔案格式唔正確');
+        const valid = arr.filter(r => r && typeof r === 'object' && typeof r.id === 'string' && r.id);
+        if (valid.length === 0) throw new Error('檔案入面冇可用嘅夢境記錄');
+        if (!confirm(`將匯入 ${valid.length} 筆記錄（相同 ID 嘅記錄會被覆蓋），繼續？`)) return;
+
+        await dbPutMany(valid);
+        entriesCache = await dbGetAllEntries();
+        sortEntries();
+        updateSavedCount();
+        renderHistoryList();
+        showToast(`已匯入 ${valid.length} 筆記錄`);
+      } catch (err) {
+        console.error(err);
+        showToast('匯入失敗：' + err.message, true);
+      }
+    });
+
+    // ==================== 初始化 ====================
+    async function migrateFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(OLD_LS_KEY);
+        if (!raw) return false;
+        const old = JSON.parse(raw);
+        if (!Array.isArray(old) || old.length === 0) return false;
+        const records = old.filter(r => r && r.id && r.id !== 'sample_001');
+        if (records.length === 0) return false;
+        await dbPutMany(records);
+        return true;
+      } catch (_) { return false; }
+    }
+
+    async function init() {
+      initFilters();
+      resizeCanvas();
+      updateSwatches();
+      window.addEventListener('resize', resizeCanvas);
+
+      try {
+        db = await openDB();
+      } catch (err) {
+        console.error(err);
+        showToast('無法使用本機儲存：' + err.message, true);
+        await createNewEntry(true);
+        return;
+      }
+
+      // 申請持久儲存，減低瀏覽器自動清除資料嘅機會
+      if (navigator.storage && navigator.storage.persist) {
+        navigator.storage.persist().catch(() => {});
+      }
+
+      try {
+        entriesCache = await dbGetAllEntries();
+
+        if (entriesCache.length === 0) {
+          const migrated = await migrateFromLocalStorage();
+          if (migrated) entriesCache = await dbGetAllEntries();
+        }
+
+        // 首次使用：放一篇示範夢境
+        let seededNow = false;
+        const seeded = await dbGetMeta('seeded');
+        if (entriesCache.length === 0 && !seeded) {
+          const sk = makeSampleSketch();
+          const sample = {
+            id: 'sample_001',
+            date: localDateStr(),
+            no: '001',
+            ranking: 92,
+            where: '家中睡房',
+            sleepWith: 'single',
+            sketchDataUrl: sk.dataUrl,
+            sketchW: sk.w,
+            sketchH: sk.h,
+            thumb: sk.dataUrl,
+            quickFeelingNote: '滿天星斗倒映在平靜的海面上，有一座懸浮的圖書館。',
+            dreamNarrative: '夢見自己走進一間沒有屋頂的古老圖書館，書架一直延伸到雲層之上。每翻開一本書，書頁裡的文字就會變成發光的紙鶴飛向夜空。雖然周圍很安靜，但心裡感到前所未有的平靜與清晰。',
+            dreamMessage: '最近對未來方向的焦慮其實是多餘的，內心已經累積了足夠的知識與直覺，只需要勇敢翻開下一頁。',
+            goals: [
+              { checked: true, text: '每天睡前留 15 分鐘遠離螢幕，靜心閱讀' },
+              { checked: false, text: '把腦海中的創作靈感整理成具體企劃大綱' },
+              { checked: false, text: '週末到海邊散步放鬆身心' },
+              { checked: false, text: '' }
+            ],
+            dreamTypes: ['vivid', 'prophetic'],
+            dreamTypeOtherText: '',
+            characters: ['myself', 'stranger'],
+            charactersOtherText: '',
+            vision: 'first',
+            wellness: 5,
+            interruptions: 0,
+            sleepStart: '23:15',
+            sleepFinish: '07:15',
+            preSleepActivity: '喝洋甘菊茶、聽輕音樂',
+            feeling: 'good',
+            feelingsOtherText: '',
+            updatedAt: new Date().toISOString()
+          };
+          await dbPutEntry(sample);
+          entriesCache = [sample];
+          seededNow = true;
+        }
+        if (!seeded) await dbSetMeta('seeded', true);
+
+        sortEntries();
+        updateSavedCount();
+        renderHistoryList();
+
+        // 有草稿就還原，否則首次顯示示範頁，其餘情況開新頁
+        const draft = await dbGetMeta('draft');
+        if (draft) {
+          await loadEntry(draft);
+          dirty = true;
+          document.getElementById('dirtyBadge').classList.remove('hidden');
+          showToast('已還原上次未儲存嘅草稿');
+        } else if (seededNow) {
+          await loadEntry(entriesCache[0]);
+          markClean();
+        } else {
+          await createNewEntry(true);
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('讀取記錄時出錯：' + err.message, true);
+        await createNewEntry(true);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
 
