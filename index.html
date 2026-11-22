@@ -60,6 +60,10 @@
       min-height: 192px;
     }
 
+    /* 摺疊區塊：隱藏瀏覽器預設箭咀 */
+    summary { list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+
     /* 雙頁中間書脊陰影效果 */
     @media (min-width: 1024px) {
       .book-spine-left {
@@ -136,36 +140,66 @@
     <span id="toastMsg">已儲存夢境記錄</span>
   </div>
 
-  <!-- 雙頁展開手帳主體 (Two-Page Spread Journal Container) -->
+  <!-- 雙頁展開手帳主體 -->
   <main class="journal-container w-full max-w-[1380px] bg-paper border border-borderLine rounded-2xl shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-2">
 
-    <!-- ==================== 左頁 (LEFT PAGE) ==================== -->
+    <!-- ==================== 左頁：第一層 · 醒來即記 ==================== -->
     <section class="book-spine-left border-b lg:border-b-0 lg:border-r border-borderLine flex flex-col">
 
-      <!-- 左頁頂部：夢境分數 & 睡眠伴侶 -->
-      <div class="grid grid-cols-1 sm:grid-cols-12 border-b border-borderLine">
-        <div class="sm:col-span-5 p-4 border-b sm:border-b-0 sm:border-r border-borderLine flex flex-col justify-between bg-paperDark/40">
+      <div class="px-5 pt-4 pb-3 border-b border-borderLine flex flex-wrap items-baseline justify-between gap-2 bg-paperDark/30">
+        <div class="flex items-baseline gap-3">
+          <h2 class="font-serifEn italic font-bold text-2xl sm:text-3xl text-ink tracking-tight">Dream Unraveled;</h2>
+          <span class="text-[11px] px-2 py-0.5 rounded-full bg-accent text-white">第一層 · 醒來即記</span>
+        </div>
+        <p class="text-[11px] sm:text-xs text-inkLight">
+          在夢境消逝之前，你可以記錄下來留住它 <span class="font-serifEn italic ml-1">Record your dreamscapes before they fade.</span>
+        </p>
+      </div>
+
+      <!-- 日期 / 編號 / 分數 -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-borderLine border-b border-borderLine">
+        <div class="px-4 py-2.5 flex items-center justify-between gap-2">
           <div>
-            <div class="text-xs font-medium text-ink tracking-wide">給今天夢境的分數</div>
-            <div class="font-serifEn italic text-sm text-inkLight">Ranking</div>
+            <span class="text-xs font-medium text-ink block leading-none">日期</span>
+            <span class="font-serifEn italic text-xs text-inkLight">Date</span>
           </div>
-          <div class="mt-3 flex items-baseline justify-end gap-1.5">
-            <input id="dreamRanking" type="number" min="0" max="100" value="85"
-              class="w-20 text-right font-serifEn text-3xl font-bold text-accent bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none" />
-            <span class="font-serifEn text-2xl text-inkLight font-semibold">/ 100</span>
+          <input id="dreamDate" type="date" class="text-sm text-ink bg-transparent focus:outline-none text-right font-medium" />
+        </div>
+        <div class="px-4 py-2.5 flex items-center justify-between gap-2">
+          <div>
+            <span class="text-xs font-medium text-ink block leading-none">編號</span>
+            <span class="font-serifEn italic text-xs text-inkLight">No.</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-xs text-inkLight">#</span>
+            <input id="dreamNo" type="text" value="001" class="w-16 text-sm text-ink bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none text-right font-medium" />
           </div>
         </div>
-
-        <div class="sm:col-span-7 p-4 flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <span class="font-serifEn italic font-semibold text-base text-ink">Sleep with who? <span class="font-sans not-italic text-xs font-normal text-inkLight ml-1">睡眠伴侶</span></span>
+        <div class="px-4 py-2.5 flex items-center justify-between gap-2 bg-paperDark/40">
+          <div>
+            <span class="text-xs font-medium text-ink block leading-none">夢境分數</span>
+            <span class="font-serifEn italic text-xs text-inkLight">Ranking</span>
           </div>
-          <div id="sleepWithContainer" class="mt-3 grid grid-cols-5 gap-1.5 text-center"></div>
+          <div class="flex items-baseline gap-1">
+            <input id="dreamRanking" type="number" min="0" max="100" value="85"
+              class="w-14 text-right font-serifEn text-2xl font-bold text-accent bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none" />
+            <span class="font-serifEn text-lg text-inkLight font-semibold">/ 100</span>
+          </div>
         </div>
       </div>
 
-      <!-- 左頁中間：Record your dream / feeling -->
-      <div class="p-4 sm:p-5 border-b border-borderLine flex-1 flex flex-col">
+      <!-- 一句描述 -->
+      <div class="px-5 py-3 border-b border-borderLine">
+        <label for="dreamSummary" class="block mb-1">
+          <span class="text-xs font-bold text-ink">一句描述</span>
+          <span class="font-serifEn italic text-xs text-inkLight ml-1">One line</span>
+        </label>
+        <input id="dreamSummary" type="text" maxlength="100" placeholder="一句話形容呢個夢，例如：喺懸浮嘅圖書館裡翻書"
+          class="w-full text-sm text-ink bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none pb-1" />
+      </div>
+
+      <!-- Record your dream / feeling -->
+      <div class="p-4 sm:p-5 flex-1 flex flex-col">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
           <div>
             <h2 class="font-serifEn italic font-bold text-xl text-ink leading-tight">Record your dream / feeling</h2>
@@ -199,7 +233,7 @@
         </div>
 
         <!-- 點陣畫布框 -->
-        <div id="canvasWrap" class="relative w-full h-[300px] sm:h-[340px] dot-grid border border-borderLine rounded-lg overflow-hidden">
+        <div id="canvasWrap" class="relative w-full h-[320px] sm:h-[400px] dot-grid border border-borderLine rounded-lg overflow-hidden">
           <span class="pointer-events-none absolute top-2.5 left-2.5 w-3.5 h-3.5 border-t-2 border-l-2 border-inkLight/60 rounded-tl-sm"></span>
           <span class="pointer-events-none absolute top-2.5 right-2.5 w-3.5 h-3.5 border-t-2 border-r-2 border-inkLight/60 rounded-tr-sm"></span>
           <span class="pointer-events-none absolute bottom-2.5 left-2.5 w-3.5 h-3.5 border-b-2 border-l-2 border-inkLight/60 rounded-bl-sm"></span>
@@ -211,118 +245,80 @@
             class="hidden absolute inset-0 w-full h-full p-5 bg-transparent resize-none focus:outline-none text-sm leading-relaxed text-ink"></textarea>
         </div>
       </div>
-
-      <!-- 左頁底部：反思與顯化目標 -->
-      <div class="grid grid-cols-1 sm:grid-cols-12 flex-1">
-        <div class="sm:col-span-6 p-4 sm:p-5 border-b sm:border-b-0 sm:border-r border-borderLine flex flex-col">
-          <div class="flex items-start gap-2 mb-2">
-            <span class="font-serifEn text-3xl leading-none text-inkLight/70 select-none">“</span>
-            <div>
-              <h3 class="text-sm font-bold text-ink">這個夢要告訴我什麼？</h3>
-              <p class="font-serifEn italic text-xs text-inkLight">What message is this dream trying to convey?</p>
-            </div>
-          </div>
-          <textarea id="dreamMessage" rows="6" placeholder="寫下夢境帶給你的啟示或潛意識反思..."
-            class="w-full flex-1 ruled-lines text-ink resize-none focus:outline-none"></textarea>
-        </div>
-
-        <div class="sm:col-span-6 p-4 sm:p-5 bg-paperDark/35 flex flex-col justify-between">
-          <div>
-            <div class="flex items-start justify-between gap-2 mb-3">
-              <div>
-                <h3 class="text-sm font-bold text-ink text-right sm:text-left">設定顯化目標</h3>
-                <p class="font-serifEn italic text-xs text-inkLight">Setting Manifestation Goals</p>
-              </div>
-              <span class="font-serifEn text-3xl leading-none text-inkLight/70 select-none">”</span>
-            </div>
-            <div id="manifestationList" class="space-y-3 mt-2"></div>
-          </div>
-          <p class="text-[11px] text-inkLight mt-4 italic">將夢境的靈感轉化為清醒世界的具體行動。</p>
-        </div>
-      </div>
     </section>
 
-    <!-- ==================== 右頁 (RIGHT PAGE) ==================== -->
-    <section class="book-spine-right flex flex-col">
+    <!-- ==================== 右頁：第二層 / 第三層（可摺疊） ==================== -->
+    <section class="book-spine-right flex flex-col divide-y divide-borderLine">
 
-      <div class="border-b border-borderLine">
-        <div class="px-5 pt-4 pb-3 border-b border-borderLine flex flex-wrap items-baseline justify-between gap-2 bg-paperDark/30">
-          <h2 class="font-serifEn italic font-bold text-2xl sm:text-3xl text-ink tracking-tight">Dream Unraveled;</h2>
-          <p class="text-[11px] sm:text-xs text-inkLight">
-            在夢境消逝之前，你可以記錄下來留住它 <span class="font-serifEn italic ml-1">Record your dreamscapes before they fade.</span>
-          </p>
-        </div>
+      <!-- ===== 第二層 A：夢境細節 ===== -->
+      <details id="secDream" data-sec class="group">
+        <summary class="cursor-pointer select-none px-5 py-3 flex items-center justify-between bg-paperDark/40 hover:bg-paperDark/70 transition">
+          <span class="flex items-center gap-2">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-accentSoft text-accent font-medium">第二層</span>
+            <span class="text-sm font-bold text-ink">夢境細節</span>
+            <span class="font-serifEn italic text-sm text-inkLight">Dream Details</span>
+          </span>
+          <svg class="w-4 h-4 text-inkLight transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
 
-        <div class="grid grid-cols-1 sm:grid-cols-12">
-          <div class="sm:col-span-6 border-b sm:border-b-0 sm:border-r border-borderLine divide-y divide-borderLine">
-            <div class="px-4 py-2.5 flex items-center justify-between gap-2">
-              <div>
-                <span class="text-xs font-medium text-ink block leading-none">日期</span>
-                <span class="font-serifEn italic text-xs text-inkLight">Date</span>
-              </div>
-              <input id="dreamDate" type="date" class="text-sm text-ink bg-transparent focus:outline-none text-right font-medium" />
-            </div>
-            <div class="px-4 py-2.5 flex items-center justify-between gap-2">
-              <div>
-                <span class="text-xs font-medium text-ink block leading-none">編號</span>
-                <span class="font-serifEn italic text-xs text-inkLight">No.</span>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-xs text-inkLight">#</span>
-                <input id="dreamNo" type="text" value="001" class="w-20 text-sm text-ink bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none text-right font-medium" />
-              </div>
-            </div>
-          </div>
-
-          <div class="sm:col-span-6 px-4 py-2.5 flex flex-col justify-between">
-            <div>
-              <span class="text-xs font-medium text-ink block leading-none">在哪裡做夢</span>
-              <span class="font-serifEn italic text-xs text-inkLight">Where</span>
-            </div>
+        <div class="divide-y divide-borderLine text-xs border-t border-borderLine">
+          <div class="px-5 py-3">
+            <span class="font-bold text-ink">在哪裡做夢</span>
+            <span class="font-serifEn italic text-inkLight ml-1">Where</span>
             <input id="dreamWhere" type="text" placeholder="例如：家中睡房、酒店、長途航班..."
               class="mt-2 w-full text-sm text-ink bg-transparent border-b border-dashed border-borderLine focus:border-accent focus:outline-none pb-1" />
           </div>
-        </div>
-      </div>
 
-      <!-- The Dream 夢境描述 -->
-      <div class="p-4 sm:p-5 border-b border-borderLine flex-1 flex flex-col">
-        <div class="flex items-center gap-2 mb-2">
-          <h3 class="font-serifEn italic font-bold text-xl text-ink">The Dream</h3>
-          <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
-          </svg>
-          <span class="text-xs font-medium text-inkLight tracking-widest">夢境描述</span>
-        </div>
-        <textarea id="dreamNarrative" rows="9" placeholder="詳細記錄夢境的場景、情節發展、對話與細節..."
-          class="w-full flex-1 ruled-lines text-ink resize-none focus:outline-none"></textarea>
-      </div>
+          <div class="px-5 py-3 flex flex-col">
+            <div class="flex items-center gap-2 mb-2">
+              <h3 class="font-serifEn italic font-bold text-xl text-ink">The Dream</h3>
+              <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+              </svg>
+              <span class="text-xs font-medium text-inkLight tracking-widest">詳細夢境描述</span>
+            </div>
+            <textarea id="dreamNarrative" rows="7" placeholder="詳細記錄夢境的場景、情節發展、對話與細節..."
+              class="w-full ruled-lines text-ink resize-none focus:outline-none"></textarea>
+          </div>
 
-      <!-- 右頁底部 -->
-      <div class="grid grid-cols-1 md:grid-cols-12">
-
-        <div class="md:col-span-6 border-b md:border-b-0 md:border-r border-borderLine divide-y divide-borderLine text-xs">
-          <div class="p-3.5">
+          <div class="px-5 py-3">
             <div class="mb-2">
               <span class="font-bold text-ink">什麼類型的夢境</span>
               <span class="font-serifEn italic text-inkLight ml-1">Dream Type</span>
             </div>
-            <div id="dreamTypeContainer" class="grid grid-cols-2 gap-y-1.5 gap-x-2"></div>
+            <div id="dreamTypeContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-2"></div>
             <input id="dreamTypeOtherText" type="text" placeholder="其他類型說明..."
               class="mt-2 w-full bg-paperDark/60 border border-borderLine rounded px-2 py-1 text-xs focus:outline-none focus:border-accent" />
           </div>
 
-          <div class="p-3.5">
+          <div class="px-5 py-3">
+            <div class="mb-2">
+              <span class="font-bold text-ink">特別標記</span>
+              <span class="font-serifEn italic text-inkLight ml-1">Flags</span>
+            </div>
+            <div id="flagsContainer" class="grid grid-cols-2 gap-2"></div>
+          </div>
+
+          <div class="px-5 py-3">
+            <div class="mb-2">
+              <span class="font-bold text-ink">夢中嘅情緒</span>
+              <span class="font-serifEn italic text-inkLight ml-1">Emotion in the dream</span>
+              <span class="text-inkLight ml-1">（可多選）</span>
+            </div>
+            <div id="dreamEmotionContainer" class="flex flex-wrap gap-1.5"></div>
+          </div>
+
+          <div class="px-5 py-3">
             <div class="mb-2">
               <span class="font-bold text-ink">有什麼人物在你夢境</span>
               <span class="font-serifEn italic text-inkLight ml-1">Characters</span>
             </div>
-            <div id="charactersContainer" class="grid grid-cols-2 gap-y-1.5 gap-x-2"></div>
+            <div id="charactersContainer" class="grid grid-cols-2 sm:grid-cols-5 gap-y-2 gap-x-2"></div>
             <input id="charactersOtherText" type="text" placeholder="其他人物（如：舊同學、偶像、動物）..."
               class="mt-2 w-full bg-paperDark/60 border border-borderLine rounded px-2 py-1 text-xs focus:outline-none focus:border-accent" />
           </div>
 
-          <div class="p-3.5">
+          <div class="px-5 py-3">
             <div class="mb-2">
               <span class="font-bold text-ink">夢境視覺</span>
               <span class="font-serifEn italic text-inkLight ml-1">Dream vision</span>
@@ -330,17 +326,36 @@
             <div id="visionContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-2"></div>
           </div>
         </div>
+      </details>
 
-        <div class="md:col-span-6 divide-y divide-borderLine text-xs">
-          <div class="p-3.5 space-y-3">
+      <!-- ===== 第二層 B：睡眠與感覺 ===== -->
+      <details id="secSleep" data-sec class="group">
+        <summary class="cursor-pointer select-none px-5 py-3 flex items-center justify-between bg-paperDark/40 hover:bg-paperDark/70 transition">
+          <span class="flex items-center gap-2">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-accentSoft text-accent font-medium">第二層</span>
+            <span class="text-sm font-bold text-ink">睡眠與醒來感覺</span>
+            <span class="font-serifEn italic text-sm text-inkLight">Sleep &amp; Feelings</span>
+          </span>
+          <svg class="w-4 h-4 text-inkLight transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+
+        <div class="divide-y divide-borderLine text-xs border-t border-borderLine">
+          <div class="px-5 py-3">
+            <div class="mb-2">
+              <span class="font-serifEn italic font-semibold text-sm text-ink">Sleep with who?</span>
+              <span class="text-xs text-inkLight ml-1">睡眠伴侶</span>
+            </div>
+            <div id="sleepWithContainer" class="grid grid-cols-5 gap-1.5 text-center"></div>
+          </div>
+
+          <div class="px-5 py-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <div class="flex justify-between items-center mb-1.5">
-                <span class="font-bold text-ink">睡眠質素 <span class="font-serifEn italic font-normal text-inkLight">Sleep Wellness</span></span>
+                <span class="font-bold text-ink">睡眠質素 <span class="font-serifEn italic font-normal text-inkLight">Wellness</span></span>
                 <span id="wellnessValLabel" class="font-serifEn font-bold text-accent text-sm">4 / 5</span>
               </div>
               <div id="sleepWellnessScale" class="flex items-center justify-between px-1"></div>
             </div>
-
             <div>
               <div class="flex justify-between items-center mb-1.5">
                 <span class="font-bold text-ink">睡眠中斷 <span class="font-serifEn italic font-normal text-inkLight">Interruptions</span></span>
@@ -350,7 +365,7 @@
             </div>
           </div>
 
-          <div class="p-3.5">
+          <div class="px-5 py-3">
             <div class="flex items-center justify-between mb-2">
               <span class="font-bold text-ink">睡眠時間 <span class="font-serifEn italic font-normal text-inkLight">Hours Slept</span></span>
               <span id="totalHoursBadge" class="px-2 py-0.5 rounded bg-accentSoft text-accent font-medium text-[11px]">共 7.5 小時</span>
@@ -369,14 +384,14 @@
             </div>
           </div>
 
-          <div class="p-3.5">
+          <div class="px-5 py-3">
             <label class="block font-bold text-ink mb-1">睡前活動 <span class="font-serifEn italic font-normal text-inkLight">Pre-Sleep Activity</span></label>
             <input id="preSleepActivity" type="text" placeholder="例如：閱讀、聽輕音樂、冥想、滑手機..."
               class="w-full border-b border-dashed border-borderLine bg-transparent py-1 text-xs text-ink focus:border-accent focus:outline-none" />
           </div>
 
-          <div class="p-3.5">
-            <div class="font-bold text-ink mb-2">感覺 <span class="font-serifEn italic font-normal text-inkLight">Feelings</span></div>
+          <div class="px-5 py-3">
+            <div class="font-bold text-ink mb-2">醒來後嘅感覺 <span class="font-serifEn italic font-normal text-inkLight">Feelings</span></div>
             <div id="feelingsContainer" class="grid grid-cols-3 gap-1.5"></div>
             <div class="mt-2 flex items-center gap-1.5">
               <span class="text-inkLight shrink-0">其他 Others:</span>
@@ -385,8 +400,83 @@
             </div>
           </div>
         </div>
+      </details>
 
-      </div>
+      <!-- ===== 第三層：深入分析 ===== -->
+      <details id="secDeep" data-sec class="group">
+        <summary class="cursor-pointer select-none px-5 py-3 flex items-center justify-between bg-paperDark/40 hover:bg-paperDark/70 transition">
+          <span class="flex items-center gap-2">
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">第三層</span>
+            <span class="text-sm font-bold text-ink">深入分析</span>
+            <span class="font-serifEn italic text-sm text-inkLight">Deeper Reflection</span>
+          </span>
+          <svg class="w-4 h-4 text-inkLight transition-transform group-open:rotate-180" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </summary>
+
+        <div class="divide-y divide-borderLine text-xs border-t border-borderLine">
+          <!-- 前一日狀態 -->
+          <div class="px-5 py-3 space-y-3">
+            <div class="font-bold text-ink">前一日狀態 <span class="font-serifEn italic font-normal text-inkLight">The day before</span></div>
+
+            <div>
+              <div class="text-inkLight mb-1.5">壓力程度</div>
+              <div id="stressContainer" class="flex flex-wrap gap-1.5"></div>
+            </div>
+            <div>
+              <div class="text-inkLight mb-1.5">壓力來源 <span class="opacity-70">（可選、可多選）</span></div>
+              <div id="stressSourcesContainer" class="flex flex-wrap gap-1.5"></div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <div class="text-inkLight mb-1.5">咖啡因 <span class="font-serifEn italic">Caffeine</span></div>
+                <div id="caffeineContainer" class="flex gap-1.5"></div>
+              </div>
+              <div>
+                <div class="text-inkLight mb-1.5">酒精 <span class="font-serifEn italic">Alcohol</span></div>
+                <div id="alcoholContainer" class="flex gap-1.5"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 標籤 -->
+          <div class="px-5 py-3">
+            <div class="mb-2">
+              <span class="font-bold text-ink">標籤／反覆出現嘅符號</span>
+              <span class="font-serifEn italic text-inkLight ml-1">Tags</span>
+            </div>
+            <div id="tagChips" class="flex flex-wrap gap-1.5 mb-2"></div>
+            <input id="tagInput" type="text" list="tagList" maxlength="20" placeholder="輸入標籤後按 Enter，例如：水、追趕、考試..."
+              class="w-full bg-paperDark/60 border border-borderLine rounded px-2 py-1.5 text-xs focus:outline-none focus:border-accent" />
+            <datalist id="tagList"></datalist>
+            <div id="tagSuggest" class="flex flex-wrap gap-1.5 mt-2"></div>
+          </div>
+
+          <!-- 反思 -->
+          <div class="px-5 py-3 flex flex-col">
+            <div class="flex items-start gap-2 mb-2">
+              <span class="font-serifEn text-3xl leading-none text-inkLight/70 select-none">“</span>
+              <div>
+                <h3 class="text-sm font-bold text-ink">這個夢要告訴我什麼？</h3>
+                <p class="font-serifEn italic text-xs text-inkLight">What message is this dream trying to convey?</p>
+              </div>
+            </div>
+            <textarea id="dreamMessage" rows="6" placeholder="寫下夢境帶給你的啟示或潛意識反思..."
+              class="w-full ruled-lines text-ink resize-none focus:outline-none"></textarea>
+          </div>
+
+          <!-- 顯化目標 -->
+          <div class="px-5 py-3 bg-paperDark/35">
+            <div class="mb-3">
+              <h3 class="text-sm font-bold text-ink">設定顯化目標</h3>
+              <p class="font-serifEn italic text-xs text-inkLight">Setting Manifestation Goals</p>
+            </div>
+            <div id="manifestationList" class="space-y-3"></div>
+            <p class="text-[11px] text-inkLight mt-3 italic">將夢境的靈感轉化為清醒世界的具體行動。</p>
+          </div>
+        </div>
+      </details>
+
     </section>
   </main>
 
@@ -405,11 +495,12 @@
 
     <!-- 搜尋與篩選 -->
     <div class="p-3 border-b border-borderLine space-y-2 bg-paper">
-      <input id="searchInput" type="search" placeholder="搜尋內容、地點、日期、編號..."
+      <input id="searchInput" type="search" placeholder="搜尋內容、標籤、地點、日期、編號..."
         class="w-full text-sm bg-white border border-borderLine rounded-lg px-3 py-2 focus:outline-none focus:border-accent" />
-      <div class="grid grid-cols-2 gap-2">
-        <select id="filterType" class="text-xs bg-white border border-borderLine rounded-lg px-2 py-1.5 focus:outline-none focus:border-accent"></select>
-        <select id="filterFeeling" class="text-xs bg-white border border-borderLine rounded-lg px-2 py-1.5 focus:outline-none focus:border-accent"></select>
+      <div class="grid grid-cols-3 gap-2">
+        <select id="filterType" class="text-xs bg-white border border-borderLine rounded-lg px-1.5 py-1.5 focus:outline-none focus:border-accent"></select>
+        <select id="filterFeeling" class="text-xs bg-white border border-borderLine rounded-lg px-1.5 py-1.5 focus:outline-none focus:border-accent"></select>
+        <select id="filterFlag" class="text-xs bg-white border border-borderLine rounded-lg px-1.5 py-1.5 focus:outline-none focus:border-accent"></select>
       </div>
     </div>
 
@@ -467,6 +558,38 @@
       { id: 'bad', en: 'BAD', zh: '不好' }
     ];
 
+    const FLAG_OPTIONS = [
+      { key: 'lucid', zh: '清醒夢', hint: '夢中知道自己喺做夢' },
+      { key: 'recurring', zh: '重複夢', hint: '之前夢過類似嘅內容' }
+    ];
+
+    const DREAM_EMOTIONS = [
+      { id: 'calm', zh: '平靜', en: 'Calm' },
+      { id: 'joy', zh: '開心', en: 'Joyful' },
+      { id: 'excited', zh: '興奮', en: 'Excited' },
+      { id: 'nostalgic', zh: '懷念', en: 'Nostalgic' },
+      { id: 'confused', zh: '困惑', en: 'Confused' },
+      { id: 'anxious', zh: '焦慮', en: 'Anxious' },
+      { id: 'fear', zh: '驚恐', en: 'Fearful' },
+      { id: 'sad', zh: '悲傷', en: 'Sad' },
+      { id: 'angry', zh: '憤怒', en: 'Angry' }
+    ];
+
+    const STRESS_OPTIONS = [
+      { id: 'relaxed', zh: '輕鬆' },
+      { id: 'ok', zh: '一般' },
+      { id: 'stressed', zh: '有壓力' },
+      { id: 'heavy', zh: '好大壓力' }
+    ];
+
+    const STRESS_SOURCES = [
+      { id: 'work', zh: '工作' },
+      { id: 'people', zh: '人際' },
+      { id: 'health', zh: '健康' },
+      { id: 'money', zh: '金錢' },
+      { id: 'other', zh: '其他' }
+    ];
+
     // ==================== 狀態 ====================
     const blankGoals = () => [
       { checked: false, text: '' }, { checked: false, text: '' },
@@ -482,15 +605,25 @@
       wellness: 4,
       interruptions: 1,
       feeling: 'good',
-      goals: blankGoals()
+      goals: blankGoals(),
+      // 新增欄位
+      lucid: false,
+      recurring: false,
+      dreamEmotions: [],
+      caffeine: null,        // 'yes' | 'no' | null（未填）
+      alcohol: null,         // 'yes' | 'no' | null
+      stress: null,          // 'relaxed' | 'ok' | 'stressed' | 'heavy' | null
+      stressSources: [],
+      tags: []
     };
 
     let entriesCache = [];   // 記憶體內嘅記錄副本（由 IndexedDB 載入）
     let dirty = false;       // 係咪有未儲存嘅改動
     let draftTimer = null;
-    let filters = { q: '', type: '', feeling: '' };
+    let filters = { q: '', type: '', feeling: '', flag: '' };
 
     const OLD_LS_KEY = 'dream_unraveled_entries_v1'; // 舊版 localStorage key（用嚟遷移）
+    const SEC_KEY = 'dream_unraveled_sections';      // 記住各摺疊區塊開／合
 
     // ==================== 工具函式 ====================
     // 用本地時間產生 YYYY-MM-DD（避免 toISOString 用 UTC 令日期差一日）
@@ -521,6 +654,36 @@
       toastTimer = setTimeout(() => {
         toast.classList.add('translate-y-20', 'opacity-0');
       }, isError ? 4500 : 2400);
+    }
+
+    // ==================== 摺疊區塊（記住開合狀態） ====================
+    function initSections() {
+      let saved = {};
+      try { saved = JSON.parse(localStorage.getItem(SEC_KEY)) || {}; } catch (_) {}
+      const all = document.querySelectorAll('details[data-sec]');
+      all.forEach(d => {
+        d.open = !!saved[d.id];
+        // 只喺用家撳 summary 時儲存，避免列印時自動展開被當成用家操作
+        d.querySelector('summary').addEventListener('click', () => {
+          setTimeout(() => {
+            const s = {};
+            all.forEach(x => { s[x.id] = x.open; });
+            try { localStorage.setItem(SEC_KEY, JSON.stringify(s)); } catch (_) {}
+          }, 0);
+        });
+      });
+
+      // 列印時展開全部，列印完還原
+      let wasOpen = null;
+      window.addEventListener('beforeprint', () => {
+        wasOpen = Array.from(all).map(d => d.open);
+        all.forEach(d => { d.open = true; });
+      });
+      window.addEventListener('afterprint', () => {
+        if (!wasOpen) return;
+        all.forEach((d, i) => { d.open = wasOpen[i]; });
+        wasOpen = null;
+      });
     }
 
     // ==================== IndexedDB ====================
@@ -587,6 +750,13 @@
       return String(max + 1).padStart(3, '0');
     }
 
+    // 記錄有變動後，統一更新計數、列表同標籤建議
+    function afterEntriesChanged() {
+      document.getElementById('savedCount').textContent = entriesCache.length;
+      renderHistoryList();
+      renderTags();
+    }
+
     // ==================== 繪圖畫布（Pointer Events） ====================
     const canvas = document.getElementById('dreamCanvas');
     const canvasWrap = document.getElementById('canvasWrap');
@@ -620,8 +790,9 @@
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      if (snap) drawContain(snap, lastW, lastH);
+      const oldW = lastW, oldH = lastH;
       lastW = w; lastH = h;
+      if (snap) drawContain(snap, oldW, oldH);
     }
 
     // 將圖片按比例置中畫入畫布（logicalW/H 係圖片原本嘅邏輯尺寸）
@@ -815,7 +986,7 @@
 
     // ==================== 互動 UI 渲染 ====================
     function checkboxHTML(checked) {
-      return `<span class="mt-0.5 w-3.5 h-3.5 rounded-sm border flex items-center justify-center transition ${
+      return `<span class="mt-0.5 w-3.5 h-3.5 shrink-0 rounded-sm border flex items-center justify-center transition ${
         checked ? 'bg-accent border-accent text-white' : 'border-inkLight/60 bg-white group-hover:border-accent'
       }">${checked ? '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' : ''}</span>`;
     }
@@ -827,8 +998,16 @@
       </span>`;
     }
 
+    // 膠囊式選項按鈕
+    function chipHTML(active, label, onclick) {
+      return `<button type="button" onclick="${onclick}"
+        class="px-2.5 py-1 rounded-full border text-[11px] transition cursor-pointer ${
+          active ? 'bg-accent text-white border-accent' : 'bg-white text-inkLight border-borderLine hover:border-accent hover:text-ink'
+        }">${label}</button>`;
+    }
+
     function renderInteractiveControls() {
-      // 1. Sleep with who?
+      // Sleep with who?
       document.getElementById('sleepWithContainer').innerHTML = SLEEP_WITH_OPTIONS.map(opt => {
         const active = state.sleepWith === opt.id;
         return `
@@ -842,35 +1021,52 @@
           </button>`;
       }).join('');
 
-      // 2. Dream Type
+      // Dream Type
       document.getElementById('dreamTypeContainer').innerHTML = DREAM_TYPES.map(item => `
         <label onclick="toggleArrayItem('dreamTypes', '${item.id}')" class="flex items-start gap-2 cursor-pointer select-none group">
           ${checkboxHTML(state.dreamTypes.includes(item.id))}${labelTextHTML(item)}
         </label>`).join('');
 
-      // 3. Characters
+      // Flags（清醒夢／重複夢）
+      document.getElementById('flagsContainer').innerHTML = FLAG_OPTIONS.map(f => `
+        <label onclick="toggleFlag('${f.key}')" class="flex items-start gap-2 cursor-pointer select-none group">
+          ${checkboxHTML(state[f.key])}
+          <span class="leading-tight">
+            <span class="block text-ink font-medium">${f.zh}</span>
+            <span class="block text-[11px] text-inkLight">${f.hint}</span>
+          </span>
+        </label>`).join('');
+
+      // 夢中情緒
+      document.getElementById('dreamEmotionContainer').innerHTML = DREAM_EMOTIONS.map(e =>
+        chipHTML(state.dreamEmotions.includes(e.id),
+          `${e.zh} <span class="font-serifEn italic opacity-70">${e.en}</span>`,
+          `toggleArrayItem('dreamEmotions','${e.id}')`)
+      ).join('');
+
+      // Characters
       document.getElementById('charactersContainer').innerHTML = CHARACTER_OPTIONS.map(item => `
         <label onclick="toggleArrayItem('characters', '${item.id}')" class="flex items-start gap-2 cursor-pointer select-none group">
           ${checkboxHTML(state.characters.includes(item.id))}${labelTextHTML(item)}
         </label>`).join('');
 
-      // 4. Dream Vision
+      // Dream Vision
       document.getElementById('visionContainer').innerHTML = VISION_OPTIONS.map(item => {
         const active = state.vision === item.id;
         return `
           <label onclick="selectSingle('vision', '${item.id}')" class="flex items-start gap-2 cursor-pointer select-none group">
-            <span class="mt-0.5 w-3.5 h-3.5 rounded-full border flex items-center justify-center transition ${
+            <span class="mt-0.5 w-3.5 h-3.5 shrink-0 rounded-full border flex items-center justify-center transition ${
               active ? 'border-accent' : 'border-inkLight/60 bg-white group-hover:border-accent'
             }">${active ? '<span class="w-2 h-2 rounded-full bg-accent"></span>' : ''}</span>
             ${labelTextHTML(item)}
           </label>`;
       }).join('');
 
-      // 5. Wellness / Interruptions
+      // Wellness / Interruptions
       renderScale('sleepWellnessScale', 'wellness', state.wellness, 'wellnessValLabel');
       renderScale('sleepInterruptionScale', 'interruptions', state.interruptions, 'interruptionValLabel');
 
-      // 6. Feelings
+      // Feelings
       document.getElementById('feelingsContainer').innerHTML = FEELING_OPTIONS.map(item => {
         const active = state.feeling === item.id;
         return `
@@ -888,7 +1084,18 @@
           </button>`;
       }).join('');
 
-      // 7. Manifestation Goals
+      // 前一日狀態：壓力、壓力來源、咖啡因、酒精
+      document.getElementById('stressContainer').innerHTML = STRESS_OPTIONS.map(o =>
+        chipHTML(state.stress === o.id, o.zh, `setOptional('stress','${o.id}')`)).join('');
+      document.getElementById('stressSourcesContainer').innerHTML = STRESS_SOURCES.map(o =>
+        chipHTML(state.stressSources.includes(o.id), o.zh, `toggleArrayItem('stressSources','${o.id}')`)).join('');
+      ['caffeine', 'alcohol'].forEach(key => {
+        document.getElementById(key + 'Container').innerHTML =
+          chipHTML(state[key] === 'yes', '有', `setOptional('${key}','yes')`) +
+          chipHTML(state[key] === 'no', '無', `setOptional('${key}','no')`);
+      });
+
+      // Manifestation Goals
       document.getElementById('manifestationList').innerHTML = state.goals.map((g, idx) => `
         <div class="flex items-center gap-2.5">
           <button type="button" onclick="toggleGoal(${idx})"
@@ -928,6 +1135,12 @@
       renderInteractiveControls(); markDirty();
     }
     function selectSingle(key, val) { state[key] = val; renderInteractiveControls(); markDirty(); }
+    function toggleFlag(key) { state[key] = !state[key]; renderInteractiveControls(); markDirty(); }
+    // 可取消選擇嘅單選（再撳一次就變返「未填」）
+    function setOptional(key, val) {
+      state[key] = state[key] === val ? null : val;
+      renderInteractiveControls(); markDirty();
+    }
     function toggleGoal(idx) { state.goals[idx].checked = !state.goals[idx].checked; renderInteractiveControls(); markDirty(); }
     function updateGoalText(idx, val) { state.goals[idx].text = val; markDirty(); }
 
@@ -943,6 +1156,85 @@
       document.getElementById('totalHoursBadge').textContent =
         `共 ${((finishMins - startMins) / 60).toFixed(1)} 小時`;
     }
+
+    // ==================== 標籤 ====================
+    function normalizeTag(s) {
+      return String(s || '').trim().replace(/^#+/, '').trim().slice(0, 20);
+    }
+
+    function addTag(raw) {
+      const t = normalizeTag(raw);
+      if (!t) return false;
+      if (state.tags.some(x => x.toLowerCase() === t.toLowerCase())) return false;
+      state.tags.push(t);
+      renderTags();
+      markDirty();
+      return true;
+    }
+
+    function removeTag(i) {
+      state.tags.splice(i, 1);
+      renderTags();
+      markDirty();
+    }
+
+    function commitPendingTag() {
+      const input = document.getElementById('tagInput');
+      if (input.value.trim()) { addTag(input.value); }
+      input.value = '';
+    }
+
+    // 所有標籤按使用次數排序
+    function tagCounts() {
+      const map = new Map();
+      entriesCache.forEach(e => (e.tags || []).forEach(t => map.set(t, (map.get(t) || 0) + 1)));
+      return [...map.entries()].sort((a, b) => b[1] - a[1]);
+    }
+
+    function renderTags() {
+      document.getElementById('tagChips').innerHTML = state.tags.map((t, i) => `
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accentSoft text-accent text-[11px]">
+          #${escapeHtml(t)}
+          <button type="button" onclick="removeTag(${i})" class="hover:text-red-600 cursor-pointer leading-none" aria-label="移除標籤">×</button>
+        </span>`).join('');
+
+      const counts = tagCounts();
+      document.getElementById('tagList').innerHTML = counts.map(([t]) => `<option value="${escapeHtml(t)}"></option>`).join('');
+
+      const used = new Set(state.tags.map(t => t.toLowerCase()));
+      const suggestions = counts.filter(([t]) => !used.has(t.toLowerCase())).slice(0, 8);
+      document.getElementById('tagSuggest').innerHTML = suggestions.length
+        ? `<span class="text-inkLight text-[11px] self-center">常用：</span>` + suggestions.map(([t, n]) => `
+            <button type="button" data-tag="${escapeHtml(t)}" onclick="addTag(this.dataset.tag)"
+              class="px-2 py-0.5 rounded-full border border-borderLine bg-white text-inkLight hover:border-accent hover:text-ink text-[11px] cursor-pointer">
+              #${escapeHtml(t)} <span class="opacity-60">${n}</span>
+            </button>`).join('')
+        : '';
+    }
+
+    (function initTagInput() {
+      const input = document.getElementById('tagInput');
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.isComposing) {
+          e.preventDefault();
+          if (addTag(input.value)) input.value = '';
+          else input.value = input.value.trim() ? input.value : '';
+        }
+      });
+      // 輸入逗號（中英文）都會當作確認
+      input.addEventListener('input', e => {
+        if (e.isComposing) return;
+        const v = input.value;
+        if (/[,，、]$/.test(v)) {
+          addTag(v.replace(/[,，、]+$/, ''));
+          input.value = '';
+        }
+      });
+      input.addEventListener('change', () => {
+        // 由 datalist 揀選或離開欄位時確認
+        if (input.value.trim()) { addTag(input.value); input.value = ''; }
+      });
+    })();
 
     // ==================== 髒標記 & 自動草稿 ====================
     function markDirty() {
@@ -973,9 +1265,12 @@
     });
     window.addEventListener('pagehide', () => { clearTimeout(draftTimer); saveDraft(); });
 
-    // 主頁面任何輸入都視為有改動
+    // 主頁面任何輸入都視為有改動（畫筆粗幼、標籤輸入框除外）
     ['input', 'change'].forEach(evt => {
-      document.querySelector('main').addEventListener(evt, markDirty);
+      document.querySelector('main').addEventListener(evt, e => {
+        if (e.target.id === 'penSize' || e.target.id === 'tagInput') return;
+        markDirty();
+      });
     });
 
     function confirmDiscardIfDirty() {
@@ -993,6 +1288,7 @@
         date: document.getElementById('dreamDate').value,
         no: document.getElementById('dreamNo').value,
         ranking,
+        summary: document.getElementById('dreamSummary').value.trim(),
         where: document.getElementById('dreamWhere').value,
         sleepWith: state.sleepWith,
         sketchDataUrl: inked ? canvas.toDataURL('image/png') : null,
@@ -1008,6 +1304,9 @@
         characters: [...state.characters],
         charactersOtherText: document.getElementById('charactersOtherText').value,
         vision: state.vision,
+        lucid: !!state.lucid,
+        recurring: !!state.recurring,
+        dreamEmotions: [...state.dreamEmotions],
         wellness: state.wellness,
         interruptions: state.interruptions,
         sleepStart: document.getElementById('sleepStart').value,
@@ -1015,6 +1314,11 @@
         preSleepActivity: document.getElementById('preSleepActivity').value,
         feeling: state.feeling,
         feelingsOtherText: document.getElementById('feelingsOtherText').value,
+        caffeine: state.caffeine,
+        alcohol: state.alcohol,
+        stress: state.stress,
+        stressSources: [...state.stressSources],
+        tags: [...state.tags],
         updatedAt: new Date().toISOString()
       };
     }
@@ -1033,9 +1337,20 @@
         : blankGoals();
       while (state.goals.length < 4) state.goals.push({ checked: false, text: '' });
 
+      // 新欄位：舊記錄冇呢啲資料，一律用預設值
+      state.lucid = entry.lucid === true;
+      state.recurring = entry.recurring === true;
+      state.dreamEmotions = Array.isArray(entry.dreamEmotions) ? [...entry.dreamEmotions] : [];
+      state.caffeine = entry.caffeine === 'yes' || entry.caffeine === 'no' ? entry.caffeine : null;
+      state.alcohol = entry.alcohol === 'yes' || entry.alcohol === 'no' ? entry.alcohol : null;
+      state.stress = STRESS_OPTIONS.some(o => o.id === entry.stress) ? entry.stress : null;
+      state.stressSources = Array.isArray(entry.stressSources) ? [...entry.stressSources] : [];
+      state.tags = Array.isArray(entry.tags) ? entry.tags.map(normalizeTag).filter(Boolean) : [];
+
       document.getElementById('dreamDate').value = entry.date || '';
       document.getElementById('dreamNo').value = entry.no || '001';
       document.getElementById('dreamRanking').value = entry.ranking ?? 80;
+      document.getElementById('dreamSummary').value = entry.summary || '';
       document.getElementById('dreamWhere').value = entry.where || '';
       document.getElementById('quickFeelingNote').value = entry.quickFeelingNote || '';
       document.getElementById('dreamNarrative').value = entry.dreamNarrative || '';
@@ -1046,9 +1361,11 @@
       document.getElementById('sleepFinish').value = entry.sleepFinish || '07:00';
       document.getElementById('preSleepActivity').value = entry.preSleepActivity || '';
       document.getElementById('feelingsOtherText').value = entry.feelingsOtherText || '';
+      document.getElementById('tagInput').value = '';
 
       calculateSleepHours();
       renderInteractiveControls();
+      renderTags();
       await loadSketch(entry.sketchDataUrl, entry.sketchW, entry.sketchH);
     }
 
@@ -1059,6 +1376,7 @@
         date: localDateStr(),
         no: nextEntryNo(),
         ranking: 80,
+        summary: '',
         where: '',
         sleepWith: 'single',
         goals: blankGoals(),
@@ -1079,6 +1397,7 @@
     // ==================== 儲存 / 刪除 ====================
     async function saveCurrentEntry() {
       try {
+        commitPendingTag(); // 標籤輸入框入面未按 Enter 嘅文字都一併加入
         const record = collectRecord(true);
         record.id = state.id || ('dream_' + Date.now());
         await dbPutEntry(record);
@@ -1090,8 +1409,7 @@
 
         await dbDelMeta('draft');
         markClean();
-        updateSavedCount();
-        renderHistoryList();
+        afterEntriesChanged();
         showToast('已成功儲存至夢境記錄簿');
       } catch (err) {
         console.error(err);
@@ -1106,8 +1424,7 @@
       try {
         await dbDeleteEntry(id);
         entriesCache = entriesCache.filter(e => e.id !== id);
-        updateSavedCount();
-        renderHistoryList();
+        afterEntriesChanged();
         // 如果刪除嘅係目前編輯緊嘅記錄，轉去一頁全新空白頁，避免再儲存時「復活」
         if (state.id === id) {
           await createNewEntry(true);
@@ -1136,24 +1453,30 @@
 
     function initFilters() {
       const typeSel = document.getElementById('filterType');
-      typeSel.innerHTML = '<option value="">所有夢境類型</option>' +
+      typeSel.innerHTML = '<option value="">所有類型</option>' +
         DREAM_TYPES.map(t => `<option value="${t.id}">${t.zh} ${t.en}</option>`).join('');
       const feelSel = document.getElementById('filterFeeling');
       feelSel.innerHTML = '<option value="">所有感覺</option>' +
         FEELING_OPTIONS.map(f => `<option value="${f.id}">${f.zh} ${f.en}</option>`).join('');
+      const flagSel = document.getElementById('filterFlag');
+      flagSel.innerHTML = '<option value="">所有標記</option>' +
+        FLAG_OPTIONS.map(f => `<option value="${f.key}">${f.zh}</option>`).join('');
 
       document.getElementById('searchInput').addEventListener('input', e => { filters.q = e.target.value.trim().toLowerCase(); renderHistoryList(); });
       typeSel.addEventListener('change', e => { filters.type = e.target.value; renderHistoryList(); });
       feelSel.addEventListener('change', e => { filters.feeling = e.target.value; renderHistoryList(); });
+      flagSel.addEventListener('change', e => { filters.flag = e.target.value; renderHistoryList(); });
     }
 
     function entryMatches(e) {
       if (filters.type && !(e.dreamTypes || []).includes(filters.type)) return false;
       if (filters.feeling && e.feeling !== filters.feeling) return false;
+      if (filters.flag && e[filters.flag] !== true) return false;
       if (filters.q) {
         const hay = [
-          e.no, e.date, e.where, e.dreamNarrative, e.dreamMessage, e.quickFeelingNote,
+          e.no, e.date, e.summary, e.where, e.dreamNarrative, e.dreamMessage, e.quickFeelingNote,
           e.preSleepActivity, e.dreamTypeOtherText, e.charactersOtherText, e.feelingsOtherText,
+          ...(e.tags || []),
           ...(e.goals || []).map(g => g.text)
         ].join(' ').toLowerCase();
         if (!hay.includes(filters.q)) return false;
@@ -1176,6 +1499,13 @@
       container.innerHTML = list.map(item => {
         const feel = FEELING_OPTIONS.find(f => f.id === item.feeling);
         const thumb = item.thumb || item.sketchDataUrl;
+        const tags = (item.tags || []).slice(0, 3);
+        const snippet = item.dreamNarrative || item.quickFeelingNote || (item.summary ? '' : '（純繪畫夢境記錄）');
+        const badges = [
+          feel ? feel.zh : null,
+          item.lucid ? '清醒夢' : null,
+          item.recurring ? '重複夢' : null
+        ].filter(Boolean);
         return `
           <div data-id="${escapeHtml(item.id)}" class="p-3 rounded-xl border border-borderLine bg-white hover:border-accent transition cursor-pointer shadow-sm flex gap-3">
             ${thumb ? `<img src="${thumb}" alt="" class="w-20 h-14 object-cover rounded-md border border-borderLine shrink-0 bg-paper" />` : ''}
@@ -1189,8 +1519,12 @@
                   </button>
                 </div>
               </div>
-              <p class="text-xs text-ink line-clamp-2 leading-relaxed">${escapeHtml(item.dreamNarrative || item.quickFeelingNote || '（純繪畫夢境記錄）')}</p>
-              ${feel ? `<span class="inline-block mt-1.5 text-[10px] px-1.5 py-0.5 rounded bg-accentSoft text-accent">${feel.zh}</span>` : ''}
+              ${item.summary ? `<p class="text-sm font-medium text-ink leading-snug truncate">${escapeHtml(item.summary)}</p>` : ''}
+              ${snippet ? `<p class="text-xs text-inkLight line-clamp-2 leading-relaxed">${escapeHtml(snippet)}</p>` : ''}
+              <div class="flex flex-wrap gap-1 mt-1.5">
+                ${badges.map(b => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-accentSoft text-accent">${b}</span>`).join('')}
+                ${tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 rounded bg-paperDark text-inkLight">#${escapeHtml(t)}</span>`).join('')}
+              </div>
             </div>
           </div>`;
       }).join('');
@@ -1214,14 +1548,10 @@
       showToast(`已載入夢境 #${entry.no}`);
     }
 
-    function updateSavedCount() {
-      document.getElementById('savedCount').textContent = entriesCache.length;
-    }
-
     // ==================== 匯出 / 匯入備份 ====================
     function exportJSON() {
       if (entriesCache.length === 0) { showToast('暫時冇記錄可以匯出', true); return; }
-      const payload = { app: 'dream-unraveled', version: 1, exportedAt: new Date().toISOString(), entries: entriesCache };
+      const payload = { app: 'dream-unraveled', version: 2, exportedAt: new Date().toISOString(), entries: entriesCache };
       const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -1249,8 +1579,7 @@
         await dbPutMany(valid);
         entriesCache = await dbGetAllEntries();
         sortEntries();
-        updateSavedCount();
-        renderHistoryList();
+        afterEntriesChanged();
         showToast(`已匯入 ${valid.length} 筆記錄`);
       } catch (err) {
         console.error(err);
@@ -1273,6 +1602,7 @@
     }
 
     async function init() {
+      initSections();
       initFilters();
       resizeCanvas();
       updateSwatches();
@@ -1310,6 +1640,7 @@
             date: localDateStr(),
             no: '001',
             ranking: 92,
+            summary: '喺冇屋頂嘅懸浮圖書館裡翻書',
             where: '家中睡房',
             sleepWith: 'single',
             sketchDataUrl: sk.dataUrl,
@@ -1330,6 +1661,9 @@
             characters: ['myself', 'stranger'],
             charactersOtherText: '',
             vision: 'first',
+            lucid: false,
+            recurring: false,
+            dreamEmotions: ['calm', 'joy'],
             wellness: 5,
             interruptions: 0,
             sleepStart: '23:15',
@@ -1337,6 +1671,11 @@
             preSleepActivity: '喝洋甘菊茶、聽輕音樂',
             feeling: 'good',
             feelingsOtherText: '',
+            caffeine: 'no',
+            alcohol: 'no',
+            stress: 'ok',
+            stressSources: ['work'],
+            tags: ['圖書館', '星空', '海'],
             updatedAt: new Date().toISOString()
           };
           await dbPutEntry(sample);
@@ -1346,8 +1685,7 @@
         if (!seeded) await dbSetMeta('seeded', true);
 
         sortEntries();
-        updateSavedCount();
-        renderHistoryList();
+        afterEntriesChanged();
 
         // 有草稿就還原，否則首次顯示示範頁，其餘情況開新頁
         const draft = await dbGetMeta('draft');
@@ -1373,4 +1711,3 @@
   </script>
 </body>
 </html>
-
